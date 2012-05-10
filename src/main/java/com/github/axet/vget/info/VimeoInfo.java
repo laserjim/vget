@@ -17,6 +17,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 
 import com.github.axet.vget.VGetBase;
+import com.github.axet.wget.WGet;
+import com.github.axet.wget.info.DownloadRetry;
 
 public class VimeoInfo implements VGetInfo {
 
@@ -49,8 +51,8 @@ public class VimeoInfo implements VGetInfo {
         HttpURLConnection con;
         con = (HttpURLConnection) url.openConnection();
 
-        con.setConnectTimeout(VGetBase.CONNECT_TIMEOUT);
-        con.setReadTimeout(VGetBase.READ_TIMEOUT);
+        con.setConnectTimeout(WGet.CONNECT_TIMEOUT);
+        con.setReadTimeout(WGet.READ_TIMEOUT);
 
         String xml = readHtml(con);
 

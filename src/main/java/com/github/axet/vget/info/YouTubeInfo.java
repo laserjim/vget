@@ -20,7 +20,9 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import com.github.axet.vget.VGetBase;
-import com.github.axet.vget.info.VGetInfo.VideoQuality;
+import com.github.axet.wget.WGet;
+import com.github.axet.wget.info.DownloadError;
+import com.github.axet.wget.info.DownloadRetry;
 
 public class YouTubeInfo implements VGetInfo {
 
@@ -69,8 +71,8 @@ public class YouTubeInfo implements VGetInfo {
         URL url = new URL(sURL);
         HttpURLConnection con;
         con = (HttpURLConnection) url.openConnection();
-        con.setConnectTimeout(VGetBase.CONNECT_TIMEOUT);
-        con.setReadTimeout(VGetBase.READ_TIMEOUT);
+        con.setConnectTimeout(WGet.CONNECT_TIMEOUT);
+        con.setReadTimeout(WGet.READ_TIMEOUT);
 
         String sContentType = null;
         sContentType = con.getContentType().toLowerCase();
@@ -183,8 +185,8 @@ public class YouTubeInfo implements VGetInfo {
         HttpURLConnection con;
         con = (HttpURLConnection) url.openConnection();
 
-        con.setConnectTimeout(VGetBase.CONNECT_TIMEOUT);
-        con.setReadTimeout(VGetBase.READ_TIMEOUT);
+        con.setConnectTimeout(WGet.CONNECT_TIMEOUT);
+        con.setReadTimeout(WGet.READ_TIMEOUT);
 
         String qs = readHtml(con);
         Map<String, String> map = getQueryMap(qs);

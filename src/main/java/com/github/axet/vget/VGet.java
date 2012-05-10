@@ -52,7 +52,7 @@ public class VGet extends VGetBase {
 
         t1.setFileName(oldpath);
 
-        setbQuitrequested(false);
+        stop(false);
         t1.start();
     }
 
@@ -61,7 +61,7 @@ public class VGet extends VGetBase {
      * 
      */
     public void stop() {
-        setbQuitrequested(true);
+        stop(true);
     }
 
     /**
@@ -167,7 +167,7 @@ public class VGet extends VGetBase {
     }
 
     public boolean canceled() {
-        return getbQuitrequested();
+        return getStop().get();
     }
 
     public VideoQuality getVideoQuality() {
