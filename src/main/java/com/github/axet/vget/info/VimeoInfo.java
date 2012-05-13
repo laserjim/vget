@@ -17,28 +17,30 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 
 import com.github.axet.vget.VGetBase;
+import com.github.axet.wget.Direct;
+import com.github.axet.wget.info.DownloadRetry;
 
 public class VimeoInfo implements VGetInfo {
 
-    HashMap<VideoQuality, String> sNextVideoURL = new HashMap<VideoQuality, String>();
+    HashMap<VideoQuality, VideoURL> sNextVideoURL = new HashMap<VideoQuality, VideoURL>();
     String sTitle = null;
 
     VGetBase ytd2;
 
-    String source;
+    URL source;
 
-    public VimeoInfo(VGetBase ytd2, String input) {
+    public VimeoInfo(VGetBase ytd2, URL input) {
         this.ytd2 = ytd2;
         this.source = input;
     }
 
-    public static boolean probe(String url) {
-        return url.contains("vimeo.com");
+    public static boolean probe(URL url) {
+        return url.toString().contains("vimeo.com");
     }
 
-    void downloadone(String sURL) throws Exception {
+    void downloadone(URL sURL) throws Exception {
         Pattern u = Pattern.compile("vimeo.com/(\\d+)");
-        Matcher um = u.matcher(sURL);
+        Matcher um = u.matcher(sURL.toString());
         if (!um.find()) {
             throw new RuntimeException("unknown url");
         }
@@ -49,8 +51,8 @@ public class VimeoInfo implements VGetInfo {
         HttpURLConnection con;
         con = (HttpURLConnection) url.openConnection();
 
-        con.setConnectTimeout(VGetBase.CONNECT_TIMEOUT);
-        con.setReadTimeout(VGetBase.READ_TIMEOUT);
+        con.setConnectTimeout(Direct.CONNECT_TIMEOUT);
+        con.setReadTimeout(Direct.READ_TIMEOUT);
 
         String xml = readHtml(con);
 
@@ -66,8 +68,8 @@ public class VimeoInfo implements VGetInfo {
         String hd = get + "hd";
         String sd = get + "sd";
 
-        sNextVideoURL.put(VideoQuality.p1080, hd);
-        sNextVideoURL.put(VideoQuality.p480, sd);
+        sNextVideoURL.put(VideoQuality.p1080, new VideoURL(VideoQuality.p1080, hd, "mp4"));
+        sNextVideoURL.put(VideoQuality.p480, new VideoURL(VideoQuality.p480, sd, "mp4"));
     }
 
     String readHtml(HttpURLConnection con) {
@@ -98,8 +100,8 @@ public class VimeoInfo implements VGetInfo {
      * @param s
      *            download source url
      */
-    void addVideo(VideoQuality vd, String s) {
-        sNextVideoURL.put(vd, s);
+    void addVideo(VideoQuality vd, String s, String ext) {
+        sNextVideoURL.put(vd, new VideoURL(vd, s, ext));
     }
 
     void extractHtmlInfo(String html) throws IOException {
@@ -117,7 +119,7 @@ public class VimeoInfo implements VGetInfo {
 
     @Override
     public String getSource() {
-        return source;
+        return source.toString();
     }
 
     @Override
@@ -126,7 +128,7 @@ public class VimeoInfo implements VGetInfo {
     }
 
     @Override
-    public Map<VideoQuality, String> getVideos() {
+    public Map<VideoQuality, VideoURL> getVideos() {
         return sNextVideoURL;
     }
 

@@ -1,24 +1,17 @@
 package com.github.axet.vget;
 
+import java.io.File;
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class VGetBase {
-    private Boolean bQuitrequested = false;
+    private AtomicBoolean stop = new AtomicBoolean(false);
 
     VGetThread t1;
 
-    static public final int CONNECT_TIMEOUT = 5000;
-    static public final int READ_TIMEOUT = 5000;
-
-    public synchronized Boolean getbQuitrequested() {
-        return bQuitrequested;
-    }
-
-    public synchronized void setbQuitrequested(Boolean bQuitrequested) {
-        this.bQuitrequested = bQuitrequested;
-    }
-
     void shutdownAppl() {
-        synchronized (bQuitrequested) {
-            bQuitrequested = true;
+        synchronized (getStop()) {
+            stop(true);
         }
         try {
             try {
@@ -34,10 +27,18 @@ public class VGetBase {
         }
     }
 
-    void download(String url, String sdirectory) {
+    void download(URL url, File sdirectory) {
         t1 = new VGetThread(this, url, sdirectory);
     }
 
     void changed() {
+    }
+
+    public AtomicBoolean getStop() {
+        return stop;
+    }
+
+    public void stop(boolean b) {
+        stop.set(b);
     }
 }

@@ -20,7 +20,9 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import com.github.axet.vget.VGetBase;
-import com.github.axet.vget.info.VGetInfo.VideoQuality;
+import com.github.axet.wget.Direct;
+import com.github.axet.wget.info.DownloadError;
+import com.github.axet.wget.info.DownloadRetry;
 
 public class YouTubeInfo implements VGetInfo {
 
@@ -40,24 +42,24 @@ public class YouTubeInfo implements VGetInfo {
         }
     }
 
-    HashMap<VideoQuality, String> sNextVideoURL = new HashMap<VideoQuality, String>();
+    HashMap<VideoQuality, VideoURL> sNextVideoURL = new HashMap<VideoQuality, VideoURL>();
 
     String sTitle = null;
 
     VGetBase ytd2;
 
-    String source;
+    URL source;
 
-    public YouTubeInfo(VGetBase ytd2, String input) {
+    public YouTubeInfo(VGetBase ytd2, URL input) {
         this.ytd2 = ytd2;
         this.source = input;
     }
 
-    public static boolean probe(String url) {
-        return url.contains("youtube.com");
+    public static boolean probe(URL url) {
+        return url.toString().contains("youtube.com");
     }
 
-    void downloadone(String sURL) throws Exception {
+    void downloadone(URL sURL) throws Exception {
         try {
             extractEmbedded();
         } catch (EmbeddingDisabled e) {
@@ -65,12 +67,12 @@ public class YouTubeInfo implements VGetInfo {
         }
     }
 
-    void streamCpature(String sURL) throws Exception {
-        URL url = new URL(sURL);
+    void streamCpature(URL sURL) throws Exception {
+        URL url = sURL;
         HttpURLConnection con;
         con = (HttpURLConnection) url.openConnection();
-        con.setConnectTimeout(VGetBase.CONNECT_TIMEOUT);
-        con.setReadTimeout(VGetBase.READ_TIMEOUT);
+        con.setConnectTimeout(Direct.CONNECT_TIMEOUT);
+        con.setReadTimeout(Direct.READ_TIMEOUT);
 
         String sContentType = null;
         sContentType = con.getContentType().toLowerCase();
@@ -110,66 +112,67 @@ public class YouTubeInfo implements VGetInfo {
      * @param s
      *            download source url
      */
-    void addVideo(VideoQuality vd, String s) {
+    void addVideo(VideoQuality vd, String s, String ext) {
         if (s != null)
-            sNextVideoURL.put(vd, s);
+            sNextVideoURL.put(vd, new VideoURL(vd, s, ext));
     }
 
     void addVideo(Integer itag, String url) {
         switch (itag) {
         case 38:
             // mp4
-            addVideo(VideoQuality.p1080, url);
+            addVideo(VideoQuality.p1080, url, "mp4");
             break;
         case 37:
             // mp4
-            addVideo(VideoQuality.p1080, url);
+            addVideo(VideoQuality.p1080, url, "mp4");
             break;
         case 46:
             // webm
-            addVideo(VideoQuality.p1080, url);
+            addVideo(VideoQuality.p1080, url, "webm");
             break;
         case 22:
             // mp4
-            addVideo(VideoQuality.p720, url);
+            addVideo(VideoQuality.p720, url, "mp4");
             break;
         case 45:
             // webm
-            addVideo(VideoQuality.p720, url);
+            addVideo(VideoQuality.p720, url, "webm");
             break;
         case 35:
             // mp4
-            addVideo(VideoQuality.p480, url);
+            addVideo(VideoQuality.p480, url, "mp4");
             break;
         case 44:
             // webm
-            addVideo(VideoQuality.p480, url);
+            addVideo(VideoQuality.p480, url, "webm");
             break;
         case 18:
             // mp4
-            addVideo(VideoQuality.p360, url);
+            addVideo(VideoQuality.p360, url, "mp4");
             break;
         case 34:
             // flv
-            addVideo(VideoQuality.p360, url);
+            addVideo(VideoQuality.p360, url, "flv");
             break;
         case 43:
             // webm
-            addVideo(VideoQuality.p360, url);
+            addVideo(VideoQuality.p360, url, "webm");
             break;
         case 6:
             // flv
-            addVideo(VideoQuality.p270, url);
+            addVideo(VideoQuality.p270, url, "flv");
             break;
         case 5:
-            addVideo(VideoQuality.p224, url);
+            // flv
+            addVideo(VideoQuality.p224, url, "flv");
             break;
         }
     }
 
     void extractEmbedded() throws Exception {
         Pattern u = Pattern.compile("youtube.com/.*v=([^&]*)");
-        Matcher um = u.matcher(source);
+        Matcher um = u.matcher(source.toString());
         if (!um.find()) {
             throw new RuntimeException("unknown url");
         }
@@ -182,8 +185,8 @@ public class YouTubeInfo implements VGetInfo {
         HttpURLConnection con;
         con = (HttpURLConnection) url.openConnection();
 
-        con.setConnectTimeout(VGetBase.CONNECT_TIMEOUT);
-        con.setReadTimeout(VGetBase.READ_TIMEOUT);
+        con.setConnectTimeout(Direct.CONNECT_TIMEOUT);
+        con.setReadTimeout(Direct.READ_TIMEOUT);
 
         String qs = readHtml(con);
         Map<String, String> map = getQueryMap(qs);
@@ -306,7 +309,7 @@ public class YouTubeInfo implements VGetInfo {
 
     @Override
     public String getSource() {
-        return source;
+        return source.toString();
     }
 
     @Override
@@ -315,7 +318,7 @@ public class YouTubeInfo implements VGetInfo {
     }
 
     @Override
-    public Map<VideoQuality, String> getVideos() {
+    public Map<VideoQuality, VideoURL> getVideos() {
         return sNextVideoURL;
     }
 

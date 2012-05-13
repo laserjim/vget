@@ -1,6 +1,7 @@
 package com.github.axet.vget;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 
 import com.github.axet.vget.info.VGetInfo.VideoQuality;
@@ -8,8 +9,8 @@ import com.github.axet.vget.info.VGetInfo.VideoQuality;
 public class VGet extends VGetBase {
 
     ArrayList<Listener> list = new ArrayList<VGet.Listener>();
-    String source;
-    String target;
+    URL source;
+    File target;
 
     String targetForce;
 
@@ -23,11 +24,11 @@ public class VGet extends VGetBase {
         }
     }
 
-    public VGet(String source, String target) {
+    public VGet(URL source, File target) {
         super();
 
-        this.source = source.trim();
-        this.target = target.trim();
+        this.source = source;
+        this.target = target;
     }
 
     public void setTarget(File path) {
@@ -52,7 +53,7 @@ public class VGet extends VGetBase {
 
         t1.setFileName(oldpath);
 
-        setbQuitrequested(false);
+        stop(false);
         t1.start();
     }
 
@@ -61,7 +62,7 @@ public class VGet extends VGetBase {
      * 
      */
     public void stop() {
-        setbQuitrequested(true);
+        stop(true);
     }
 
     /**
@@ -167,7 +168,7 @@ public class VGet extends VGetBase {
     }
 
     public boolean canceled() {
-        return getbQuitrequested();
+        return getStop().get();
     }
 
     public VideoQuality getVideoQuality() {
@@ -191,46 +192,53 @@ public class VGet extends VGetBase {
     }
 
     public static void main(String[] args) {
-        // 120p test
-        // YTD2 y = new YTD2("http://www.youtube.com/watch?v=OY7fmYkpsRs",
-        // "/Users/axet/Downloads");
+        try {
+            // 120p test
+            // YTD2 y = new YTD2("http://www.youtube.com/watch?v=OY7fmYkpsRs",
+            // "/Users/axet/Downloads");
 
-        // age restriction test
-        VGet y = new VGet("http://www.youtube.com/watch?v=QoTWRHheshw&feature=youtube_gdata", "/Users/axet/Downloads");
+            // age restriction test
+            VGet y = new VGet(new URL("http://www.youtube.com/watch?v=QoTWRHheshw&feature=youtube_gdata"), new File(
+                    "/Users/axet/Downloads"));
 
-        // user page test
-        // YTD2 y = new YTD2(
-        // "http://www.youtube.com/user/cubert01?v=gidumziw4JE&feature=pyv&ad=8307058643&kw=youtube%20download",
-        // "/Users/axet/Downloads");
+            // user page test
+            // YTD2 y = new YTD2(
+            // "http://www.youtube.com/user/cubert01?v=gidumziw4JE&feature=pyv&ad=8307058643&kw=youtube%20download",
+            // "/Users/axet/Downloads");
 
-        // hd test
-        // VGet y = new VGet("http://www.youtube.com/watch?v=rRS6xL1B8ig",
-        // "/Users/axet/Downloads");
+            // hd test
+            // VGet y = new VGet("http://www.youtube.com/watch?v=rRS6xL1B8ig",
+            // "/Users/axet/Downloads");
 
-        // VGet y = new VGet("http://vimeo.com/39289096",
-        // "/Users/axet/Downloads");
+            // VGet y = new VGet("http://vimeo.com/39289096",
+            // "/Users/axet/Downloads");
 
-        y.start();
+            y.start();
 
-        System.out.println("input: " + y.getInput());
+            System.out.println("input: " + y.getInput());
 
-        while (y.isActive()) {
-            try {
-                Thread.sleep(1000);
-            } catch (Exception e) {
+            while (y.isActive()) {
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                }
+
+                System.out.println("title: " + y.getTitle() + ", Quality: " + y.getVideoQuality() + ", bytes: "
+                        + y.getBytes() + ", total: " + y.getTotal());
             }
 
-            System.out.println("title: " + y.getTitle() + ", Quality: " + y.getVideoQuality() + ", bytes: "
-                    + y.getBytes() + ", total: " + y.getTotal());
+            if (y.isJoin())
+                y.join();
+
+            y.close();
+
+            if (y.getException() != null)
+                y.getException().printStackTrace();
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        if (y.isJoin())
-            y.join();
-
-        y.close();
-
-        if (y.getException() != null)
-            y.getException().printStackTrace();
     }
 
 }
