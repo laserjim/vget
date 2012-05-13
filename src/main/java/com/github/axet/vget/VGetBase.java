@@ -1,5 +1,7 @@
 package com.github.axet.vget;
 
+import java.io.File;
+import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VGetBase {
@@ -25,7 +27,7 @@ public class VGetBase {
         }
     }
 
-    void download(String url, String sdirectory) {
+    void download(URL url, File sdirectory) {
         t1 = new VGetThread(this, url, sdirectory);
     }
 

@@ -1,5 +1,6 @@
 package com.github.axet.vget;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
@@ -27,7 +28,7 @@ class VGetThread extends Thread {
 
     Runnable notify;
 
-    public VGetThread(final VGetBase base, String url, String target) {
+    public VGetThread(final VGetBase base, URL url, File target) {
         try {
 
             notify = new Runnable() {

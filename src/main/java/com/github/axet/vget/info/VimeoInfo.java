@@ -17,7 +17,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 
 import com.github.axet.vget.VGetBase;
-import com.github.axet.wget.WGet;
+import com.github.axet.wget.Direct;
 import com.github.axet.wget.info.DownloadRetry;
 
 public class VimeoInfo implements VGetInfo {
@@ -27,20 +27,20 @@ public class VimeoInfo implements VGetInfo {
 
     VGetBase ytd2;
 
-    String source;
+    URL source;
 
-    public VimeoInfo(VGetBase ytd2, String input) {
+    public VimeoInfo(VGetBase ytd2, URL input) {
         this.ytd2 = ytd2;
         this.source = input;
     }
 
-    public static boolean probe(String url) {
-        return url.contains("vimeo.com");
+    public static boolean probe(URL url) {
+        return url.toString().contains("vimeo.com");
     }
 
-    void downloadone(String sURL) throws Exception {
+    void downloadone(URL sURL) throws Exception {
         Pattern u = Pattern.compile("vimeo.com/(\\d+)");
-        Matcher um = u.matcher(sURL);
+        Matcher um = u.matcher(sURL.toString());
         if (!um.find()) {
             throw new RuntimeException("unknown url");
         }
@@ -51,8 +51,8 @@ public class VimeoInfo implements VGetInfo {
         HttpURLConnection con;
         con = (HttpURLConnection) url.openConnection();
 
-        con.setConnectTimeout(WGet.CONNECT_TIMEOUT);
-        con.setReadTimeout(WGet.READ_TIMEOUT);
+        con.setConnectTimeout(Direct.CONNECT_TIMEOUT);
+        con.setReadTimeout(Direct.READ_TIMEOUT);
 
         String xml = readHtml(con);
 
@@ -119,7 +119,7 @@ public class VimeoInfo implements VGetInfo {
 
     @Override
     public String getSource() {
-        return source;
+        return source.toString();
     }
 
     @Override

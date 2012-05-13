@@ -14,7 +14,7 @@ import com.github.axet.wget.info.DownloadRetry;
 
 class VGetDownload {
 
-    String targetDir;
+    File targetDir;
 
     String target = null;
     VGetBase ytd2;
@@ -28,7 +28,7 @@ class VGetDownload {
 
     VGetInfo.VideoURL max;
 
-    public VGetDownload(VGetBase base, DownloadInfo info, VGetInfo e, String sdirectorychoosed, Runnable notify) {
+    public VGetDownload(VGetBase base, DownloadInfo info, VGetInfo e, File sdirectorychoosed, Runnable notify) {
         this.ei = e;
         this.info = info;
         this.targetDir = sdirectorychoosed;
