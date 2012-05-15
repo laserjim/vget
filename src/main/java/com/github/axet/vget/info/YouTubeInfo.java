@@ -1,8 +1,5 @@
 package com.github.axet.vget.info;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -21,8 +18,8 @@ import org.apache.http.client.utils.URLEncodedUtils;
 
 import com.github.axet.vget.VGetBase;
 import com.github.axet.wget.Direct;
+import com.github.axet.wget.WGet;
 import com.github.axet.wget.info.DownloadError;
-import com.github.axet.wget.info.DownloadRetry;
 
 public class YouTubeInfo implements VGetInfo {
 
@@ -68,42 +65,9 @@ public class YouTubeInfo implements VGetInfo {
     }
 
     void streamCpature(URL sURL) throws Exception {
-        URL url = sURL;
-        HttpURLConnection con;
-        con = (HttpURLConnection) url.openConnection();
-        con.setConnectTimeout(Direct.CONNECT_TIMEOUT);
-        con.setReadTimeout(Direct.READ_TIMEOUT);
-
-        String sContentType = null;
-        sContentType = con.getContentType().toLowerCase();
-        if (sContentType.matches("^text/html(.*)")) {
-            String html;
-            html = readHtml(con);
-            extractHtmlInfo(html);
-        }
-    }
-
-    String readHtml(HttpURLConnection con) {
-        BufferedReader textreader = null;
-        try {
-            textreader = new BufferedReader(new InputStreamReader(con.getInputStream(),
-                    con.getContentEncoding() == null ? "UTF-8" : con.getContentEncoding()));
-        } catch (IOException e1) {
-            throw new DownloadRetry(e1);
-        }
-
-        StringBuilder contents = new StringBuilder();
-        String line = "";
-
-        try {
-            while ((line = textreader.readLine()) != null) {
-                contents.append(line + "\n");
-            }
-        } catch (IOException e) {
-            throw new DownloadRetry(e);
-        }
-
-        return contents.toString();
+        String html;
+        html = WGet.getHtml(sURL);
+        extractHtmlInfo(html);
     }
 
     /**
@@ -182,13 +146,8 @@ public class YouTubeInfo implements VGetInfo {
                 .format("http://www.youtube.com/get_video_info?video_id=%s&el=embedded&ps=default&eurl=", id);
 
         URL url = new URL(get);
-        HttpURLConnection con;
-        con = (HttpURLConnection) url.openConnection();
 
-        con.setConnectTimeout(Direct.CONNECT_TIMEOUT);
-        con.setReadTimeout(Direct.READ_TIMEOUT);
-
-        String qs = readHtml(con);
+        String qs = WGet.getHtml(url);
         Map<String, String> map = getQueryMap(qs);
         if (map.get("status").equals("fail"))
             throw new EmbeddingDisabled(URLDecoder.decode(map.get("reason"), "UTF-8"));
