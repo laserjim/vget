@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.axet</groupId>
   <artifactId>vget</artifactId>
-  <version>0.0.10</version>
+  <version>0.0.11</version>
   <name>vget</name>
 
   <dependencies>
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>com.github.axet</groupId>
       <artifactId>wget</artifactId>
-      <version>0.0.7</version>
+      <version>0.0.8</version>
     </dependency>
   </dependencies>
 
