@@ -1,11 +1,11 @@
 package com.github.axet.vget;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.github.axet.vget.info.VGetInfo;
+import com.github.axet.vget.info.VGetParser;
+import com.github.axet.vget.info.VideoInfo;
 import com.github.axet.wget.Direct;
 import com.github.axet.wget.DirectRange;
 import com.github.axet.wget.DirectSingle;
@@ -21,17 +21,13 @@ class VGetDownload {
 
     String input;
 
-    DownloadInfo info;
-
-    VGetInfo ei;
     Runnable notify;
 
-    VGetInfo.VideoURL max;
+    VideoInfo url;
 
-    public VGetDownload(VGetBase base, DownloadInfo info, VGetInfo e, File sdirectorychoosed, Runnable notify) {
-        this.ei = e;
-        this.info = info;
-        this.targetDir = sdirectorychoosed;
+    public VGetDownload(VGetBase base, VideoInfo url, File targetDir, Runnable notify) {
+        this.url = url;
+        this.targetDir = targetDir;
         this.notify = notify;
         this.ytd2 = base;
     }
@@ -69,10 +65,13 @@ class VGetDownload {
     void download() {
         try {
             File f;
+
+            DownloadInfo info = url.getInfo();
+
             if (target == null) {
                 Integer idupcount = 0;
 
-                String sfilename = replaceBadChars(ei.getTitle());
+                String sfilename = replaceBadChars(url.getTitle());
                 String ext = info.getContentType().replaceFirst("video/", "").replaceAll("x-", "");
 
                 do {

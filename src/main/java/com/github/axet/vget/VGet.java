@@ -4,12 +4,16 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 
-import com.github.axet.vget.info.VGetInfo.VideoQuality;
+import com.github.axet.vget.info.VGetParser;
+import com.github.axet.vget.info.VideoInfo;
+import com.github.axet.vget.info.VimeoParser;
+import com.github.axet.vget.info.YouTubeParser;
+import com.github.axet.wget.info.DownloadInfo;
 
 public class VGet extends VGetBase {
 
     ArrayList<Listener> list = new ArrayList<VGet.Listener>();
-    URL source;
+    VideoInfo source;
     File target;
 
     String targetForce;
@@ -27,7 +31,34 @@ public class VGet extends VGetBase {
     public VGet(URL source, File target) {
         super();
 
-        this.source = source;
+        VideoInfo info = extract(source);
+
+        create(info, target);
+    }
+
+    public VGet(VideoInfo info, File target) {
+        super();
+
+        create(info, target);
+    }
+
+    public static VideoInfo extract(URL url) {
+        VGetParser ei = null;
+
+        if (YouTubeParser.probe(url))
+            ei = new YouTubeParser(url);
+
+        if (VimeoParser.probe(url))
+            ei = new VimeoParser(url);
+
+        if (ei == null)
+            throw new RuntimeException("unsupported web site");
+
+        return ei.extract();
+    }
+
+    void create(VideoInfo video, File target) {
+        this.source = video;
         this.target = target;
     }
 
@@ -71,6 +102,8 @@ public class VGet extends VGetBase {
      * @return
      */
     public boolean isActive() {
+        if (t1 == null)
+            return false;
         return t1.isAlive();
     }
 
@@ -80,9 +113,10 @@ public class VGet extends VGetBase {
      * @return true - we can join
      */
     public boolean isJoin() {
-        synchronized (t1.statsLock) {
-            return t1.canJoin;
-        }
+        if (t1 == null)
+            return false;
+
+        return t1.canJoin.get();
     }
 
     /**
@@ -101,7 +135,7 @@ public class VGet extends VGetBase {
      * @return
      */
     public Exception getException() {
-        synchronized (t1.statsLock) {
+        synchronized (t1.lock) {
             return t1.e;
         }
     }
@@ -114,15 +148,6 @@ public class VGet extends VGetBase {
     }
 
     /**
-     * get input url name
-     * 
-     * @return
-     */
-    public String getInput() {
-        return t1.getInput();
-    }
-
-    /**
      * get output file on local file system
      * 
      * @return
@@ -131,48 +156,12 @@ public class VGet extends VGetBase {
         return t1.getFileName();
     }
 
-    /**
-     * get bytes downloaded
-     * 
-     * @return
-     */
-    public long getBytes() {
-        return t1.getCount();
-    }
-
-    /**
-     * get total size of youtube movie
-     * 
-     * @return
-     */
-    public long getTotal() {
-        return t1.getTotal();
-    }
-
-    /**
-     * get youtube title
-     * 
-     * @return
-     */
-    public String getTitle() {
-        return t1.getTitle();
-    }
-
-    /**
-     * is everyting downloaded ok?
-     * 
-     * @return true if true
-     */
-    public boolean done() {
-        return getBytes() >= getTotal();
+    public VideoInfo getVideo() {
+        return t1.max;
     }
 
     public boolean canceled() {
         return getStop().get();
-    }
-
-    public VideoQuality getVideoQuality() {
-        return t1.getVideoQuality();
     }
 
     /**
@@ -198,8 +187,8 @@ public class VGet extends VGetBase {
             // "/Users/axet/Downloads");
 
             // age restriction test
-            VGet y = new VGet(new URL("http://www.youtube.com/watch?v=QoTWRHheshw&feature=youtube_gdata"), new File(
-                    "/Users/axet/Downloads"));
+            VideoInfo video = VGet.extract(new URL("http://www.youtube.com/watch?v=QoTWRHheshw&feature=youtube_gdata"));
+            VGet y = new VGet(video, new File("/Users/axet/Downloads"));
 
             // user page test
             // YTD2 y = new YTD2(
@@ -215,16 +204,16 @@ public class VGet extends VGetBase {
 
             y.start();
 
-            System.out.println("input: " + y.getInput());
-
             while (y.isActive()) {
                 try {
                     Thread.sleep(1000);
                 } catch (Exception e) {
                 }
 
-                System.out.println("title: " + y.getTitle() + ", Quality: " + y.getVideoQuality() + ", bytes: "
-                        + y.getBytes() + ", total: " + y.getTotal());
+                DownloadInfo info = video.getInfo();
+
+                System.out.println("title: " + video.getTitle() + ", Quality: " + video.getVq() + ", bytes: "
+                        + info.getCount() + ", total: " + info.getLength());
             }
 
             if (y.isJoin())
@@ -240,5 +229,4 @@ public class VGet extends VGetBase {
             throw new RuntimeException(e);
         }
     }
-
 }
