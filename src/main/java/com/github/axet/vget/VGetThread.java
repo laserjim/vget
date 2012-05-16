@@ -44,14 +44,14 @@ class VGetThread extends Thread {
         return max;
     }
 
-    public String getFileName() {
+    public File getFileName() {
         synchronized (lock) {
             return d.target;
 
         }
     }
 
-    public synchronized void setFileName(String file) {
+    public synchronized void setFileName(File file) {
         synchronized (lock) {
             d.target = file;
         }

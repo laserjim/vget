@@ -16,7 +16,7 @@ class VGetDownload {
 
     File targetDir;
 
-    String target = null;
+    File target = null;
     VGetBase ytd2;
 
     String input;
@@ -80,9 +80,9 @@ class VGetDownload {
                     f = new File(targetDir, sfilename + add + "." + ext);
                     idupcount += 1;
                 } while (f.exists());
-                this.target = f.getAbsolutePath();
+                this.target = f;
             } else {
-                f = new File(target);
+                f = target;
             }
 
             Direct direct;
