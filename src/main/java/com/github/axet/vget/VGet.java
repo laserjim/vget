@@ -16,7 +16,7 @@ public class VGet extends VGetBase {
     VideoInfo source;
     File target;
 
-    String targetForce;
+    File targetForce;
 
     public static interface Listener {
         public void changed();
@@ -63,7 +63,7 @@ public class VGet extends VGetBase {
     }
 
     public void setTarget(File path) {
-        targetForce = path.toString();
+        targetForce = path;
     }
 
     /**
@@ -73,7 +73,7 @@ public class VGet extends VGetBase {
         if (t1 != null && isActive())
             throw new RuntimeException("already started");
 
-        String oldpath = null;
+        File oldpath = null;
         if (t1 != null)
             oldpath = t1.getFileName();
 
@@ -152,7 +152,7 @@ public class VGet extends VGetBase {
      * 
      * @return
      */
-    public String getOutput() {
+    public File getOutput() {
         return t1.getFileName();
     }
 
