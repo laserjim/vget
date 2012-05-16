@@ -3,101 +3,55 @@ package com.github.axet.vget;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.github.axet.vget.info.VGetInfo;
-import com.github.axet.vget.info.VGetInfo.VideoQuality;
-import com.github.axet.vget.info.VGetInfo.VideoURL;
-import com.github.axet.vget.info.VimeoInfo;
-import com.github.axet.vget.info.YouTubeInfo;
-import com.github.axet.wget.info.DownloadError;
+import com.github.axet.vget.info.VGetParser;
+import com.github.axet.vget.info.VideoInfo;
+import com.github.axet.vget.info.VideoInfo.VideoQuality;
+import com.github.axet.vget.info.VimeoParser;
+import com.github.axet.vget.info.YouTubeParser;
 import com.github.axet.wget.info.DownloadInfo;
 
 class VGetThread extends Thread {
 
+    Object lock = new Object();
+
     // is the main thread done working?
-    boolean canJoin = false;
+    AtomicBoolean canJoin = new AtomicBoolean(false);
 
     // exception druning execution
     Exception e;
 
-    Object statsLock = new Object();
-    VGetInfo ei;
-    DownloadInfo info;
+    VGetParser ei;
     VGetDownload d;
+    VideoInfo max;
 
     Runnable notify;
 
-    public VGetThread(final VGetBase base, URL url, File target) {
-        try {
+    public VGetThread(final VGetBase base, VideoInfo video, File target) {
+        notify = new Runnable() {
+            @Override
+            public void run() {
+                base.changed();
+            }
+        };
 
-            notify = new Runnable() {
-                @Override
-                public void run() {
-                    base.changed();
-                }
-            };
-
-            if (YouTubeInfo.probe(url))
-                ei = new YouTubeInfo(base, url);
-
-            if (VimeoInfo.probe(url))
-                ei = new VimeoInfo(base, url);
-
-            if (ei == null)
-                throw new RuntimeException("unsupported web site");
-
-            ei.extract();
-            
-            VideoURL max = getVideo();
-            info = new DownloadInfo(new URL(max.url));
-
-            info.extract();
-
-            d = new VGetDownload(base, info, ei, target, notify);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+        d = new VGetDownload(base, max, target, notify);
     }
 
-    public String getTitle() {
-        synchronized (statsLock) {
-            return ei.getTitle();
-        }
-    }
-
-    public long getTotal() {
-        synchronized (statsLock) {
-            return info.getLength();
-        }
-    }
-
-    public long getCount() {
-        synchronized (statsLock) {
-            return info.getCount();
-        }
-    }
-
-    public VideoQuality getVideoQuality() {
-        synchronized (statsLock) {
-            return d.max != null ? d.max.vq : null;
-        }
+    public VideoInfo getVideo() {
+        return max;
     }
 
     public String getFileName() {
-        synchronized (statsLock) {
+        synchronized (lock) {
             return d.target;
+
         }
     }
 
-    public String getInput() {
-        synchronized (statsLock) {
-            return ei.getSource();
-        }
-    }
-
-    public void setFileName(String file) {
-        synchronized (statsLock) {
+    public synchronized void setFileName(String file) {
+        synchronized (lock) {
             d.target = file;
         }
     }
@@ -108,29 +62,13 @@ class VGetThread extends Thread {
             ei.extract();
             d.download();
         } catch (Exception e) {
-            synchronized (statsLock) {
+            synchronized (lock) {
                 this.e = e;
             }
             notify.run();
         }
 
-        synchronized (statsLock) {
-            canJoin = true;
-        }
+        canJoin.set(true);
         notify.run();
-    }
-
-    public VideoURL getVideo() {
-        Map<VideoQuality, VideoURL> sNextVideoURL = ei.getVideos();
-
-        VideoQuality[] avail = new VideoQuality[] { VideoQuality.p2304, VideoQuality.p1080, VideoQuality.p720,
-                VideoQuality.p480, VideoQuality.p360, VideoQuality.p270, VideoQuality.p224 };
-
-        for (int i = 0; i < avail.length; i++) {
-            if (sNextVideoURL.containsKey(avail[i]))
-                return sNextVideoURL.get(avail[i]);
-        }
-
-        throw new DownloadError("no video with required quality found");
     }
 }

@@ -1,6 +1,6 @@
 package com.github.axet.vget.info;
 
-import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -17,11 +17,11 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import com.github.axet.vget.VGetBase;
-import com.github.axet.wget.Direct;
+import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.WGet;
 import com.github.axet.wget.info.DownloadError;
 
-public class YouTubeInfo implements VGetInfo {
+public class YouTubeParser extends VGetParser {
 
     public static class AgeException extends DownloadError {
         private static final long serialVersionUID = 1L;
@@ -39,16 +39,13 @@ public class YouTubeInfo implements VGetInfo {
         }
     }
 
-    HashMap<VideoQuality, VideoURL> sNextVideoURL = new HashMap<VideoQuality, VideoURL>();
+    HashMap<VideoQuality, URL> sNextVideoURL = new HashMap<VideoQuality, URL>();
 
     String sTitle = null;
 
-    VGetBase ytd2;
-
     URL source;
 
-    public YouTubeInfo(VGetBase ytd2, URL input) {
-        this.ytd2 = ytd2;
+    public YouTubeParser(URL input) {
         this.source = input;
     }
 
@@ -75,61 +72,62 @@ public class YouTubeInfo implements VGetInfo {
      * 
      * @param s
      *            download source url
+     * @throws MalformedURLException
      */
-    void addVideo(VideoQuality vd, String s, String ext) {
+    void addVideo(VideoQuality vd, String s) throws MalformedURLException {
         if (s != null)
-            sNextVideoURL.put(vd, new VideoURL(vd, s, ext));
+            sNextVideoURL.put(vd, new URL(s));
     }
 
-    void addVideo(Integer itag, String url) {
+    void addVideo(Integer itag, String url) throws MalformedURLException {
         switch (itag) {
         case 38:
             // mp4
-            addVideo(VideoQuality.p1080, url, "mp4");
+            addVideo(VideoQuality.p1080, url);
             break;
         case 37:
             // mp4
-            addVideo(VideoQuality.p1080, url, "mp4");
+            addVideo(VideoQuality.p1080, url);
             break;
         case 46:
             // webm
-            addVideo(VideoQuality.p1080, url, "webm");
+            addVideo(VideoQuality.p1080, url);
             break;
         case 22:
             // mp4
-            addVideo(VideoQuality.p720, url, "mp4");
+            addVideo(VideoQuality.p720, url);
             break;
         case 45:
             // webm
-            addVideo(VideoQuality.p720, url, "webm");
+            addVideo(VideoQuality.p720, url);
             break;
         case 35:
             // mp4
-            addVideo(VideoQuality.p480, url, "mp4");
+            addVideo(VideoQuality.p480, url);
             break;
         case 44:
             // webm
-            addVideo(VideoQuality.p480, url, "webm");
+            addVideo(VideoQuality.p480, url);
             break;
         case 18:
             // mp4
-            addVideo(VideoQuality.p360, url, "mp4");
+            addVideo(VideoQuality.p360, url);
             break;
         case 34:
             // flv
-            addVideo(VideoQuality.p360, url, "flv");
+            addVideo(VideoQuality.p360, url);
             break;
         case 43:
             // webm
-            addVideo(VideoQuality.p360, url, "webm");
+            addVideo(VideoQuality.p360, url);
             break;
         case 6:
             // flv
-            addVideo(VideoQuality.p270, url, "flv");
+            addVideo(VideoQuality.p270, url);
             break;
         case 5:
             // flv
-            addVideo(VideoQuality.p224, url, "flv");
+            addVideo(VideoQuality.p224, url);
             break;
         }
     }
@@ -256,29 +254,16 @@ public class YouTubeInfo implements VGetInfo {
         }
     }
 
-    public void extract() {
+    public VideoInfo extract(VideoQuality max) {
         try {
             downloadone(source);
+
+            return getVideo(sNextVideoURL, max, sTitle);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public String getSource() {
-        return source.toString();
-    }
-
-    @Override
-    public String getTitle() {
-        return sTitle;
-    }
-
-    @Override
-    public Map<VideoQuality, VideoURL> getVideos() {
-        return sNextVideoURL;
     }
 
 }

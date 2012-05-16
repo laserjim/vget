@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.github.axet.vget.info.VideoInfo;
+
 public class VGetBase {
     private AtomicBoolean stop = new AtomicBoolean(false);
 
@@ -27,8 +29,8 @@ public class VGetBase {
         }
     }
 
-    void download(URL url, File sdirectory) {
-        t1 = new VGetThread(this, url, sdirectory);
+    void download(VideoInfo video, File sdirectory) {
+        t1 = new VGetThread(this, video, sdirectory);
     }
 
     void changed() {
