@@ -90,7 +90,8 @@ public class VGet extends VGetBase {
      */
     public void join() {
         try {
-            t1.join();
+            if (t1 != null)
+                t1.join();
         } catch (InterruptedException e) {
         }
     }
