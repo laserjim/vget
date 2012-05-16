@@ -28,6 +28,8 @@ class VGetThread extends Thread {
     Runnable notify;
 
     public VGetThread(final VGetBase base, VideoInfo video, File target) {
+        super("VGetThread " + video.getTitle());
+        
         notify = new Runnable() {
             @Override
             public void run() {
