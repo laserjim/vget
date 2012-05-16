@@ -22,7 +22,6 @@ class VGetThread extends Thread {
     // exception druning execution
     Exception e;
 
-    VGetParser ei;
     VGetDownload d;
     VideoInfo max;
 
@@ -59,7 +58,6 @@ class VGetThread extends Thread {
     @Override
     public void run() {
         try {
-            ei.extract();
             d.download();
         } catch (Exception e) {
             synchronized (lock) {
