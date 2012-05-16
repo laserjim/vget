@@ -258,7 +258,7 @@ public class YouTubeParser extends VGetParser {
         try {
             downloadone(source);
 
-            return getVideo(sNextVideoURL, max, sTitle);
+            return getVideo(sNextVideoURL, max, source, sTitle);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

@@ -35,6 +35,8 @@ class VGetThread extends Thread {
             }
         };
 
+        max = video;
+
         d = new VGetDownload(base, max, target, notify);
     }
 

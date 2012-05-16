@@ -13,10 +13,24 @@ public class VideoInfo {
     private VideoQuality vq;
     private DownloadInfo info;
     private String title;
+    // user friendly url (not direct video stream url)
+    private URL source;
 
-    public VideoInfo(VideoQuality vq, URL url, String title) {
+    /**
+     * 
+     * @param vq
+     *            max video quality to download
+     * @param source
+     *            user firendly url
+     * @param video
+     *            video stream url
+     * @param title
+     *            video title
+     */
+    public VideoInfo(VideoQuality vq, URL source, URL video, String title) {
+        this.setSource(source);
 
-        DownloadInfo info = new DownloadInfo(url);
+        DownloadInfo info = new DownloadInfo(video);
         info.extract();
 
         this.setVq(vq);
@@ -46,5 +60,13 @@ public class VideoInfo {
 
     public void setVq(VideoQuality vq) {
         this.vq = vq;
+    }
+
+    public URL getSource() {
+        return source;
+    }
+
+    public void setSource(URL source) {
+        this.source = source;
     }
 }
