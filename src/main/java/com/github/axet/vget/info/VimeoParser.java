@@ -1,7 +1,6 @@
 package com.github.axet.vget.info;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 
-import com.github.axet.vget.VGetBase;
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.WGet;
 
@@ -72,11 +70,11 @@ public class VimeoParser extends VGetParser {
         sNextVideoURL.put(vd, new URL(s));
     }
 
-    public VideoInfo extract(VideoQuality max) {
+    public VideoInfo extract(VideoInfo vi, VideoQuality max) {
         try {
             downloadone(source);
 
-            return getVideo(sNextVideoURL, max, source, sTitle);
+            return getVideo(vi, sNextVideoURL, max, source, sTitle);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

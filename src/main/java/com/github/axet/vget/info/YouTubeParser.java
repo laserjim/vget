@@ -16,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
-import com.github.axet.vget.VGetBase;
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.WGet;
 import com.github.axet.wget.info.DownloadError;
@@ -254,11 +253,11 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
-    public VideoInfo extract(VideoQuality max) {
+    public VideoInfo extract(VideoInfo vi, VideoQuality max) {
         try {
             downloadone(source);
 
-            return getVideo(sNextVideoURL, max, source, sTitle);
+            return getVideo(vi, sNextVideoURL, max, source, sTitle);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

@@ -10,32 +10,35 @@ public class VideoInfo {
         p2304, p1080, p720, p480, p360, p270, p224
     }
 
+    private boolean empty = true;
+
     private VideoQuality vq;
     private DownloadInfo info;
     private String title;
     // user friendly url (not direct video stream url)
-    private URL source;
+    private URL web;
 
     /**
      * 
      * @param vq
      *            max video quality to download
-     * @param source
+     * @param web
      *            user firendly url
      * @param video
      *            video stream url
      * @param title
      *            video title
      */
-    public VideoInfo(VideoQuality vq, URL source, URL video, String title) {
-        this.setSource(source);
+    public VideoInfo(URL web) {
+        this.setWeb(web);
+    }
 
-        DownloadInfo info = new DownloadInfo(video);
-        info.extract();
+    public boolean empty() {
+        return empty;
+    }
 
-        this.setVq(vq);
-        this.setInfo(info);
-        this.setTitle(title);
+    public void setEmpty(boolean e) {
+        empty = e;
     }
 
     public String getTitle() {
@@ -62,11 +65,11 @@ public class VideoInfo {
         this.vq = vq;
     }
 
-    public URL getSource() {
-        return source;
+    public URL getWeb() {
+        return web;
     }
 
-    public void setSource(URL source) {
-        this.source = source;
+    public void setWeb(URL source) {
+        this.web = source;
     }
 }
