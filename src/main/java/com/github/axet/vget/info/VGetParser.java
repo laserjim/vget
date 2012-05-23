@@ -6,16 +6,18 @@ import java.util.Map;
 
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.info.DownloadError;
+import com.github.axet.wget.info.DownloadInfo;
 
 public abstract class VGetParser {
 
-    public VideoInfo extract() {
-        return extract(VideoQuality.p2304);
+    public VideoInfo extract(VideoInfo vi) {
+        return extract(vi, VideoQuality.p2304);
     }
 
-    abstract public VideoInfo extract(VideoQuality max);
+    abstract public VideoInfo extract(VideoInfo vi, VideoQuality max);
 
-    VideoInfo getVideo(Map<VideoQuality, URL> sNextVideoURL, VideoQuality maxQuality, URL source, String title) {
+    VideoInfo getVideo(VideoInfo vi, Map<VideoQuality, URL> sNextVideoURL, VideoQuality maxQuality, URL source,
+            String title) {
         VideoQuality[] avail = new VideoQuality[] { VideoQuality.p2304, VideoQuality.p1080, VideoQuality.p720,
                 VideoQuality.p480, VideoQuality.p360, VideoQuality.p270, VideoQuality.p224 };
 
@@ -24,8 +26,16 @@ public abstract class VGetParser {
             i = 0;
 
         for (; i < avail.length; i++) {
-            if (sNextVideoURL.containsKey(avail[i]))
-                return new VideoInfo(avail[i], source, sNextVideoURL.get(avail[i]), title);
+            if (sNextVideoURL.containsKey(avail[i])) {
+                VideoInfo vvi = new VideoInfo(source);
+                vvi.setEmpty(false);
+                vvi.setTitle(title);
+                vvi.setVq(avail[i]);
+                DownloadInfo info = new DownloadInfo(sNextVideoURL.get(avail[i]));
+                info.extract();
+                vvi.setInfo(info);
+                return vvi;
+            }
         }
 
         throw new DownloadError("no video with required quality found");

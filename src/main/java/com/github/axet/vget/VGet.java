@@ -31,7 +31,9 @@ public class VGet extends VGetBase {
     public VGet(URL source, File target) {
         super();
 
-        VideoInfo info = extract(source);
+        VideoInfo info = new VideoInfo(source);
+
+        extract(info);
 
         create(info, target);
     }
@@ -42,19 +44,19 @@ public class VGet extends VGetBase {
         create(info, target);
     }
 
-    public static VideoInfo extract(URL url) {
+    public static VideoInfo extract(VideoInfo vi) {
         VGetParser ei = null;
 
-        if (YouTubeParser.probe(url))
-            ei = new YouTubeParser(url);
+        if (YouTubeParser.probe(vi.getWeb()))
+            ei = new YouTubeParser(vi.getWeb());
 
-        if (VimeoParser.probe(url))
-            ei = new VimeoParser(url);
+        if (VimeoParser.probe(vi.getWeb()))
+            ei = new VimeoParser(vi.getWeb());
 
         if (ei == null)
             throw new RuntimeException("unsupported web site");
 
-        return ei.extract();
+        return ei.extract(vi);
     }
 
     void create(VideoInfo video, File target) {
@@ -187,7 +189,8 @@ public class VGet extends VGetBase {
             // "/Users/axet/Downloads");
 
             // age restriction test
-            VideoInfo video = VGet.extract(new URL("http://www.youtube.com/watch?v=QoTWRHheshw&feature=youtube_gdata"));
+            VideoInfo video = new VideoInfo(new URL("http://www.youtube.com/watch?v=QoTWRHheshw&feature=youtube_gdata"));
+            VGet.extract(video);
             VGet y = new VGet(video, new File("/Users/axet/Downloads"));
 
             // user page test
