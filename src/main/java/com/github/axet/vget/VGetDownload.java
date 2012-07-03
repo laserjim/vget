@@ -72,7 +72,12 @@ class VGetDownload {
                 Integer idupcount = 0;
 
                 String sfilename = replaceBadChars(url.getTitle());
-                String ext = info.getContentType().replaceFirst("video/", "").replaceAll("x-", "");
+
+                String ct = info.getContentType();
+                if (ct == null)
+                    throw new DownloadRetry("null content type");
+
+                String ext = ct.replaceFirst("video/", "").replaceAll("x-", "");
 
                 do {
                     String add = idupcount > 0 ? " (".concat(idupcount.toString()).concat(")") : "";
