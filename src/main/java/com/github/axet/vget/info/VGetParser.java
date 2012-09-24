@@ -7,6 +7,7 @@ import java.util.Map;
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.info.DownloadError;
 import com.github.axet.wget.info.DownloadInfo;
+import com.github.axet.wget.info.DownloadRetry;
 
 public abstract class VGetParser {
 
@@ -38,6 +39,7 @@ public abstract class VGetParser {
             }
         }
 
-        throw new DownloadError("no video with required quality found");
+        // retry. since youtube may already rendrered propertly quality.
+        throw new DownloadRetry("no video with required quality found");
     }
 }
