@@ -168,7 +168,7 @@ public class YouTubeParser extends VGetParser {
             }
             return map;
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(qs, e);
         }
     }
 
