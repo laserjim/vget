@@ -168,7 +168,7 @@ public class YouTubeParser extends VGetParser {
             }
             return map;
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(qs, e);
         }
     }
 
@@ -240,15 +240,39 @@ public class YouTubeParser extends VGetParser {
         for (String urlString : urlStrings) {
             urlString = StringEscapeUtils.unescapeJava(urlString);
 
-            Pattern link = Pattern.compile("(.*)&quality=(.*)&fallback_host=(.*)&type=(.*)itag=(\\d+)");
-            Matcher linkMatch = link.matcher(urlString);
-            if (linkMatch.find()) {
-                String url = linkMatch.group(1);
-                String itag = linkMatch.group(5);
+            {
+                Pattern link = Pattern.compile("(.*)&quality=(.*)&fallback_host=(.*)&type=(.*)itag=(\\d+)");
+                Matcher linkMatch = link.matcher(urlString);
+                if (linkMatch.find()) {
+                    String url = linkMatch.group(1);
+                    String itag = linkMatch.group(5);
 
-                url = URLDecoder.decode(url, "UTF-8");
+                    url = URLDecoder.decode(url, "UTF-8");
 
-                addVideo(Integer.decode(itag), url);
+                    addVideo(Integer.decode(itag), url);
+                }
+            }
+            
+            // youtube after 2012/09/27
+            {
+                Pattern link = Pattern.compile("(.*)&type=(.*)&fallback_host=(.*)&sig=(.*)&quality=(.*),itag=(\\d+)");
+                Matcher linkMatch = link.matcher(urlString);
+                if (linkMatch.find()) {
+                    String url = linkMatch.group(1);
+
+                    String type = linkMatch.group(2);
+                    String fallback_host = linkMatch.group(3);
+                    String sig = linkMatch.group(4);
+                    String quality = linkMatch.group(5);
+                    String itag = linkMatch.group(6);
+
+                    url = URLDecoder.decode(url, "UTF-8");
+                    type = URLDecoder.decode(type, "UTF-8");
+
+                    url += "&signature=" + sig;
+                    
+                    addVideo(Integer.decode(itag), url);
+                }
             }
         }
     }
