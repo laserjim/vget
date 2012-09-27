@@ -25,7 +25,7 @@
     <dependency>
       <groupId>com.github.axet</groupId>
       <artifactId>wget</artifactId>
-      <version>0.0.15-SNAPSHOT</version>
+      <version>0.0.16</version>
     </dependency>
   </dependencies>
 
