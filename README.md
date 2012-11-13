@@ -1,4 +1,4 @@
-vget library.
+# vget
 
 Inspired by http://sourceforge.net/projects/ytd2/.
 
@@ -7,7 +7,7 @@ Code taken from ytd2 and completely rewritten to support more web sites.
 Good examples here:
   https://github.com/pculture/miro/blob/master/tv/lib/flashscraper.py
 
-== Exceptions
+## Exceptions
 
 Here is a three kind of exceptions.
 
@@ -20,11 +20,14 @@ Here is a three kind of exceptions.
 3) DownloadRetry (caused by IOException)
   We're having temporary problems. Shall retry download after a delay.
 
-== Example
+## Example Direct
+
+Non control download
 
     public static void main(String[] args) {
         try {
             VGet v = new VGet(new URL("http://vimeo.com/52716355"), new File("/Users/axet/Downloads"));
+            // will block until download finishes
             v.download();
         } catch (Exception e) {
             throw new RuntimeException(e);
