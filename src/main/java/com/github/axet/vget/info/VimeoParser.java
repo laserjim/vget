@@ -14,6 +14,7 @@ import org.w3c.dom.Document;
 
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.WGet;
+import com.github.axet.wget.info.DownloadError;
 
 public class VimeoParser extends VGetParser {
 
@@ -31,29 +32,58 @@ public class VimeoParser extends VGetParser {
     }
 
     void downloadone(URL sURL) throws Exception {
-        Pattern u = Pattern.compile("vimeo.com/(\\d+)");
-        Matcher um = u.matcher(sURL.toString());
-        if (!um.find()) {
-            throw new RuntimeException("unknown url");
+
+        String id;
+        String clip;
+        {
+            Pattern u = Pattern.compile("vimeo.com/(\\d+)");
+            Matcher um = u.matcher(sURL.toString());
+            if (!um.find()) {
+                throw new DownloadError("unknown url");
+            }
+            id = um.group(1);
+            clip = "http://vimeo.com/" + id;
         }
-        String id = um.group(1);
-        String clip = "http://www.vimeo.com/moogaloop/load/clip:" + id;
 
         URL url = new URL(clip);
 
-        String xml = WGet.getHtml(url);
+        String html = WGet.getHtml(url);
 
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
-        String sig = doc.getElementsByTagName("request_signature").item(0).getTextContent();
-        String exp = doc.getElementsByTagName("request_signature_expires").item(0).getTextContent();
+        String sig;
+        {
+            Pattern u = Pattern.compile("\"signature\":\"([0-9a-f]+)\"");
+            Matcher um = u.matcher(html);
+            if (!um.find()) {
+                throw new DownloadError("unknown vimeo respond");
+            }
+            sig = um.group(1);
+        }
 
-        sTitle = doc.getElementsByTagName("caption").item(0).getTextContent();
+        String exp;
+        {
+            Pattern u = Pattern.compile("\"timestamp\":(\\d+)");
+            Matcher um = u.matcher(html);
+            if (!um.find()) {
+                throw new DownloadError("unknown vimeo respond");
+            }
+            exp = um.group(1);
+        }
 
-        String get = String.format("http://www.vimeo.com/moogaloop/play/clip:%s/%s/%s/?q=", id, sig, exp);
-        String hd = get + "hd";
-        String sd = get + "sd";
+        {
+            Pattern u = Pattern.compile("\"title\":\"([^\"]+)\"");
+            Matcher um = u.matcher(html);
+            if (!um.find()) {
+                throw new DownloadError("unknown vimeo respond");
+            }
+            sTitle = um.group(1);
+        }
+
+        System.out.println(html);
+
+        String get = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=H264,VP8,VP6&type=moogaloop_local&embed_location=&seek=0";
+
+        String hd = String.format(get, id, sig, exp, "hd");
+        String sd = String.format(get, id, sig, exp, "sd");
 
         sNextVideoURL.put(VideoQuality.p1080, new URL(hd));
         sNextVideoURL.put(VideoQuality.p480, new URL(sd));
