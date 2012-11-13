@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.w3c.dom.Document;
 
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
@@ -36,7 +37,7 @@ public class VimeoParser extends VGetParser {
         String id;
         String clip;
         {
-            Pattern u = Pattern.compile("vimeo.com/(\\d+)");
+            Pattern u = Pattern.compile("vimeo.com.*/(\\d+)");
             Matcher um = u.matcher(sURL.toString());
             if (!um.find()) {
                 throw new DownloadError("unknown url");
@@ -54,7 +55,7 @@ public class VimeoParser extends VGetParser {
             Pattern u = Pattern.compile("\"signature\":\"([0-9a-f]+)\"");
             Matcher um = u.matcher(html);
             if (!um.find()) {
-                throw new DownloadError("unknown vimeo respond");
+                throw new DownloadError("unknown signature vimeo respond");
             }
             sig = um.group(1);
         }
@@ -64,7 +65,7 @@ public class VimeoParser extends VGetParser {
             Pattern u = Pattern.compile("\"timestamp\":(\\d+)");
             Matcher um = u.matcher(html);
             if (!um.find()) {
-                throw new DownloadError("unknown vimeo respond");
+                throw new DownloadError("unknown timestamp vimeo respond");
             }
             exp = um.group(1);
         }
@@ -73,9 +74,10 @@ public class VimeoParser extends VGetParser {
             Pattern u = Pattern.compile("\"title\":\"([^\"]+)\"");
             Matcher um = u.matcher(html);
             if (!um.find()) {
-                throw new DownloadError("unknown vimeo respond");
+                throw new DownloadError("unknown title vimeo respond");
             }
             sTitle = um.group(1);
+            sTitle = StringEscapeUtils.unescapeHtml4(sTitle);
         }
 
         System.out.println(html);
