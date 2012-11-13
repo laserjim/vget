@@ -86,6 +86,9 @@ public class VGet {
     }
 
     public void download() {
+        if (targetForce != null)
+            vget.target = targetForce;
+
         vget.download();
     }
 
