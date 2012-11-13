@@ -1,17 +1,12 @@
 package com.github.axet.vget.info;
 
-import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.w3c.dom.Document;
 
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.WGet;
@@ -33,7 +28,6 @@ public class VimeoParser extends VGetParser {
     }
 
     void downloadone(URL sURL) throws Exception {
-
         String id;
         String clip;
         {
@@ -100,11 +94,11 @@ public class VimeoParser extends VGetParser {
         sNextVideoURL.put(vd, new URL(s));
     }
 
-    public VideoInfo extract(VideoInfo vi, VideoQuality max) {
+    public VideoInfo extract(VideoQuality max) {
         try {
             downloadone(source);
 
-            return getVideo(vi, sNextVideoURL, max, source, sTitle);
+            return getVideo(sNextVideoURL, max, source, sTitle);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

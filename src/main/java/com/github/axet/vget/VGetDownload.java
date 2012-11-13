@@ -1,10 +1,10 @@
 package com.github.axet.vget;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.github.axet.vget.info.VGetParser;
 import com.github.axet.vget.info.VideoInfo;
 import com.github.axet.wget.Direct;
 import com.github.axet.wget.DirectRange;
@@ -17,7 +17,6 @@ class VGetDownload {
     File targetDir;
 
     File target = null;
-    VGetBase ytd2;
 
     String input;
 
@@ -25,11 +24,13 @@ class VGetDownload {
 
     VideoInfo url;
 
-    public VGetDownload(VGetBase base, VideoInfo url, File targetDir, Runnable notify) {
+    AtomicBoolean stop;
+
+    public VGetDownload(VideoInfo url, File targetDir, AtomicBoolean stop, Runnable notify) {
         this.url = url;
         this.targetDir = targetDir;
         this.notify = notify;
-        this.ytd2 = base;
+        this.stop = stop;
     }
 
     /**
@@ -92,9 +93,9 @@ class VGetDownload {
 
             Direct direct;
             if (info.range())
-                direct = new DirectRange(info, f, ytd2.getStop(), notify);
+                direct = new DirectRange(info, f, stop, notify);
             else
-                direct = new DirectSingle(info, f, ytd2.getStop(), notify);
+                direct = new DirectSingle(info, f, stop, notify);
 
             if (info.getContentType() == null || !info.getContentType().contains("video/")) {
                 throw new DownloadRetry("unable to download video, bad content");
