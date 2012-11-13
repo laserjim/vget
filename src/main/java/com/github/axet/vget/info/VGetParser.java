@@ -11,13 +11,13 @@ import com.github.axet.wget.info.DownloadRetry;
 
 public abstract class VGetParser {
 
-    public VideoInfo extract(VideoInfo vi) {
-        return extract(vi, VideoQuality.p2304);
+    public VideoInfo extract() {
+        return extract(VideoQuality.p2304);
     }
 
-    abstract public VideoInfo extract(VideoInfo vi, VideoQuality max);
+    abstract public VideoInfo extract(VideoQuality max);
 
-    VideoInfo getVideo(VideoInfo vi, Map<VideoQuality, URL> sNextVideoURL, VideoQuality maxQuality, URL source,
+    VideoInfo getVideo(Map<VideoQuality, URL> sNextVideoURL, VideoQuality maxQuality, URL source,
             String title) {
         VideoQuality[] avail = new VideoQuality[] { VideoQuality.p2304, VideoQuality.p1080, VideoQuality.p720,
                 VideoQuality.p480, VideoQuality.p360, VideoQuality.p270, VideoQuality.p224 };
