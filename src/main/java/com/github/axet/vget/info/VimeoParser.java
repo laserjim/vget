@@ -80,8 +80,6 @@ public class VimeoParser extends VGetParser {
             sTitle = StringEscapeUtils.unescapeHtml4(sTitle);
         }
 
-        System.out.println(html);
-
         String get = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=H264,VP8,VP6&type=moogaloop_local&embed_location=&seek=0";
 
         String hd = String.format(get, id, sig, exp, "hd");
