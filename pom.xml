@@ -3,8 +3,43 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.axet</groupId>
   <artifactId>vget</artifactId>
-  <version>0.1.7</version>
+  <packaging>jar</packaging>
+  <version>0.1.8</version>
   <name>vget</name>
+  <description>vget java video download library</description>
+  <url>https://github.com/axet/vget</url>
+  <licenses>
+    <license>
+      <name>GNU LESSER GENERAL PUBLIC LICENSE 3.0</name>
+      <url>http://www.gnu.org/copyleft/lesser.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>https://github.com/axet/vget</url>
+    <connection>scm:git:https://github.com/axet/vget</connection>
+  </scm>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Staging Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+  <developers>
+    <developer>
+      <id>axet</id>
+      <name>Alexey Kuznetsov</name>
+      <email>ak@axet.ru</email>
+    </developer>
+  </developers>
 
   <dependencies>
     <dependency>
@@ -31,6 +66,56 @@
 
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!-- explicitly define maven-deploy-plugin after other to force exec order -->
+        <artifactId>maven-deploy-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>deploy</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>deploy</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
