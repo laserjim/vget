@@ -186,39 +186,46 @@ public class YouTubeParser extends VGetParser {
             sline = StringEscapeUtils.unescapeJava(sline);
         }
 
-        // normal embedded video, unable to grab age restricted videos
-        Pattern encod = Pattern.compile("\"url_encoded_fmt_stream_map\": \"url=([^\"]*)\"");
-        Matcher encodMatch = encod.matcher(html);
-        if (encodMatch.find()) {
-            String sline = encodMatch.group(1);
+        Pattern urlencod = Pattern.compile("\"url_encoded_fmt_stream_map\": \"([^\"]*)\"");
+        Matcher urlencodMatch = urlencod.matcher(html);
+        if (urlencodMatch.find()) {
+            String url_encoded_fmt_stream_map;
+            url_encoded_fmt_stream_map = urlencodMatch.group(1);
 
-            extractUrlEncodedVideos(sline);
-        }
+            // normal embedded video, unable to grab age restricted videos
+            Pattern encod = Pattern.compile("url=(.*)");
+            Matcher encodMatch = encod.matcher(url_encoded_fmt_stream_map);
+            if (encodMatch.find()) {
+                String sline = encodMatch.group(1);
 
-        // stream video
-        Pattern encodStream = Pattern.compile("\"url_encoded_fmt_stream_map\": \"stream=([^\"]*)\"");
-        Matcher encodStreamMatch = encodStream.matcher(html);
-        if (encodStreamMatch.find()) {
-            String sline = encodStreamMatch.group(1);
+                extractUrlEncodedVideos(sline);
+            }
 
-            String[] urlStrings = sline.split("stream=");
+            // stream video
+            Pattern encodStream = Pattern.compile("stream=(.*)");
+            Matcher encodStreamMatch = encodStream.matcher(url_encoded_fmt_stream_map);
+            if (encodStreamMatch.find()) {
+                String sline = encodStreamMatch.group(1);
 
-            for (String urlString : urlStrings) {
-                urlString = StringEscapeUtils.unescapeJava(urlString);
+                String[] urlStrings = sline.split("stream=");
 
-                Pattern link = Pattern.compile("(sparams.*)&itag=(\\d+)&.*&conn=rtmpe(.*),");
-                Matcher linkMatch = link.matcher(urlString);
-                if (linkMatch.find()) {
+                for (String urlString : urlStrings) {
+                    urlString = StringEscapeUtils.unescapeJava(urlString);
 
-                    String sparams = linkMatch.group(1);
-                    String itag = linkMatch.group(2);
-                    String url = linkMatch.group(3);
+                    Pattern link = Pattern.compile("(sparams.*)&itag=(\\d+)&.*&conn=rtmpe(.*),");
+                    Matcher linkMatch = link.matcher(urlString);
+                    if (linkMatch.find()) {
 
-                    url = "http" + url + "?" + sparams;
+                        String sparams = linkMatch.group(1);
+                        String itag = linkMatch.group(2);
+                        String url = linkMatch.group(3);
 
-                    url = URLDecoder.decode(url, "UTF-8");
+                        url = "http" + url + "?" + sparams;
 
-                    addVideo(Integer.decode(itag), url);
+                        url = URLDecoder.decode(url, "UTF-8");
+
+                        addVideo(Integer.decode(itag), url);
+                    }
                 }
             }
         }
@@ -252,7 +259,7 @@ public class YouTubeParser extends VGetParser {
                     addVideo(Integer.decode(itag), url);
                 }
             }
-            
+
             // youtube after 2012/09/27
             {
                 Pattern link = Pattern.compile("(.*)&type=(.*)&fallback_host=(.*)&sig=(.*)&quality=(.*),itag=(\\d+)");
@@ -270,7 +277,7 @@ public class YouTubeParser extends VGetParser {
                     type = URLDecoder.decode(type, "UTF-8");
 
                     url += "&signature=" + sig;
-                    
+
                     addVideo(Integer.decode(itag), url);
                 }
             }
