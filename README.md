@@ -39,5 +39,5 @@ Non control download
     <dependency>
       <groupId>com.github.axet</groupId>
       <artifactId>vget</artifactId>
-      <version>0.1.8</version>
+      <version>0.1.13</version>
     </dependency>
