@@ -16,9 +16,6 @@ Here is a three kind of exceptions.
 
 2) DownloadError (extends RuntimeException)
   We unable to process following url and shall stop to download it
-  
-3) DownloadRetry (caused by IOException)
-  We're having temporary problems. Shall retry download after a delay.
 
 ## Example Direct Download
 
