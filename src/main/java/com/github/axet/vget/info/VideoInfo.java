@@ -1,6 +1,7 @@
 package com.github.axet.vget.info;
 
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.axet.wget.info.DownloadInfo;
 
@@ -10,6 +11,10 @@ public class VideoInfo {
         p2304, p1080, p720, p480, p360, p270, p224
     }
 
+    public enum States {
+        QUEUE, EXTRACTING, EXTRACTING_DONE, DOWNLOADING, RETRYING, DONE
+    }
+
     private boolean empty = true;
 
     private VideoQuality vq;
@@ -17,6 +22,10 @@ public class VideoInfo {
     private String title;
     // user friendly url (not direct video stream url)
     private URL web;
+
+    private States state;
+    private Throwable exception;
+    private int delay;
 
     /**
      * 
@@ -31,6 +40,7 @@ public class VideoInfo {
      */
     public VideoInfo(URL web) {
         this.setWeb(web);
+        setState(States.QUEUE);
     }
 
     public boolean empty() {
@@ -71,5 +81,52 @@ public class VideoInfo {
 
     public void setWeb(URL source) {
         this.web = source;
+    }
+
+    public void extract(AtomicBoolean stop, Runnable notify) throws InterruptedException {
+        VGetParser ei = null;
+
+        if (YouTubeParser.probe(web))
+            ei = new YouTubeParser(web);
+
+        if (VimeoParser.probe(web))
+            ei = new VimeoParser(web);
+
+        if (ei == null)
+            throw new RuntimeException("unsupported web site");
+
+        ei.extract(this, stop, notify);
+
+        info.extract(stop, notify);
+    }
+
+    public States getState() {
+        return state;
+    }
+
+    public void setState(States state) {
+        this.state = state;
+        this.exception = null;
+    }
+
+    public void setState(States state, Throwable e) {
+        this.state = state;
+        this.exception = e;
+    }
+
+    public int getDelay() {
+        return delay;
+    }
+
+    public void setDelay(int delay) {
+        this.delay = delay;
+    }
+
+    public Throwable getException() {
+        return exception;
+    }
+
+    public void setException(Throwable exception) {
+        this.exception = exception;
     }
 }

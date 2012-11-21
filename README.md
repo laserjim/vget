@@ -20,21 +20,30 @@ Here is a three kind of exceptions.
 3) DownloadRetry (caused by IOException)
   We're having temporary problems. Shall retry download after a delay.
 
-## Example Direct
+## Example Direct Download
 
-Non control download
-
-    public static void main(String[] args) {
-        try {
-            VGet v = new VGet(new URL("http://vimeo.com/52716355"), new File("/Users/axet/Downloads"));
-            // will block until download finishes
-            v.download();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    package com.github.axet.vget;
+    
+    import java.io.File;
+    import java.net.URL;
+    
+    public class Example {
+    
+        public static void main(String[] args) {
+            try {
+                VGet v = new VGet(new URL("http://vimeo.com/52716355"), new File("/Users/axet/Downloads"));
+                v.download();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
+    
     }
 
-# Cetranal Maven Repo
+## Example Application Managed Download
+
+
+## Cetranal Maven Repo
 
     <dependency>
       <groupId>com.github.axet</groupId>

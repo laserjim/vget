@@ -8,6 +8,7 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,9 +17,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
+import com.github.axet.vget.info.VideoInfo.States;
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.WGet;
-import com.github.axet.wget.info.DownloadError;
+import com.github.axet.wget.info.ex.DownloadError;
 
 public class YouTubeParser extends VGetParser {
 
@@ -52,17 +54,30 @@ public class YouTubeParser extends VGetParser {
         return url.toString().contains("youtube.com");
     }
 
-    void downloadone(URL sURL) throws Exception {
+    void downloadone(VideoInfo info, AtomicBoolean stop, Runnable notify) throws Exception {
         try {
-            extractEmbedded();
+            extractEmbedded(info, stop, notify);
         } catch (EmbeddingDisabled e) {
-            streamCpature(sURL);
+            streamCpature(info, stop, notify);
         }
     }
 
-    void streamCpature(URL sURL) throws Exception {
+    void streamCpature(final VideoInfo info, final AtomicBoolean stop, final Runnable notify) throws Exception {
         String html;
-        html = WGet.getHtml(sURL);
+        html = WGet.getHtml(info.getWeb(), new WGet.HtmlLoader() {
+            @Override
+            public void notifyRetry(int delay, Throwable e) {
+                info.setState(States.RETRYING, e);
+                info.setDelay(delay);
+                notify.run();
+            }
+
+            @Override
+            public void notifyDownloading() {
+                info.setState(States.DOWNLOADING);
+                notify.run();
+            }
+        }, stop);
         extractHtmlInfo(html);
     }
 
@@ -131,7 +146,7 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
-    void extractEmbedded() throws Exception {
+    void extractEmbedded(final VideoInfo info, final AtomicBoolean stop, final Runnable notify) throws Exception {
         Pattern u = Pattern.compile("youtube.com/.*v=([^&]*)");
         Matcher um = u.matcher(source.toString());
         if (!um.find()) {
@@ -144,7 +159,21 @@ public class YouTubeParser extends VGetParser {
 
         URL url = new URL(get);
 
-        String qs = WGet.getHtml(url);
+        String qs = WGet.getHtml(url, new WGet.HtmlLoader() {
+
+            @Override
+            public void notifyRetry(int delay, Throwable e) {
+                info.setState(States.RETRYING, e);
+                info.setDelay(delay);
+                notify.run();
+            }
+
+            @Override
+            public void notifyDownloading() {
+                info.setState(States.DOWNLOADING);
+                notify.run();
+            }
+        }, stop);
         Map<String, String> map = getQueryMap(qs);
         if (map.get("status").equals("fail"))
             throw new EmbeddingDisabled(URLDecoder.decode(map.get("reason"), "UTF-8"));
@@ -284,11 +313,12 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
-    public VideoInfo extract(VideoQuality max) {
+    @Override
+    public void extract(VideoInfo info, VideoQuality max, AtomicBoolean stop, Runnable notify) {
         try {
-            downloadone(source);
+            downloadone(info, stop, notify);
 
-            return getVideo(sNextVideoURL, max, source, sTitle);
+            getVideo(info, sNextVideoURL, max, sTitle);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
