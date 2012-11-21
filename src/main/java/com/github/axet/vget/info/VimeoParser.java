@@ -3,14 +3,17 @@ package com.github.axet.vget.info;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import com.github.axet.vget.info.VideoInfo.States;
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.WGet;
-import com.github.axet.wget.info.DownloadError;
+import com.github.axet.wget.WGet.HtmlLoader;
+import com.github.axet.wget.info.ex.DownloadError;
 
 public class VimeoParser extends VGetParser {
 
@@ -27,12 +30,12 @@ public class VimeoParser extends VGetParser {
         return url.toString().contains("vimeo.com");
     }
 
-    void downloadone(URL sURL) throws Exception {
+    void downloadone(final VideoInfo info, final AtomicBoolean stop, final Runnable notify) throws Exception {
         String id;
         String clip;
         {
             Pattern u = Pattern.compile("vimeo.com.*/(\\d+)");
-            Matcher um = u.matcher(sURL.toString());
+            Matcher um = u.matcher(info.getWeb().toString());
             if (!um.find()) {
                 throw new DownloadError("unknown url");
             }
@@ -42,7 +45,21 @@ public class VimeoParser extends VGetParser {
 
         URL url = new URL(clip);
 
-        String html = WGet.getHtml(url);
+        String html = WGet.getHtml(url, new HtmlLoader() {
+
+            @Override
+            public void notifyRetry(int delay, Throwable e) {
+                info.setState(States.RETRYING, e);
+                info.setDelay(delay);
+                notify.run();
+            }
+
+            @Override
+            public void notifyDownloading() {
+                info.setState(States.EXTRACTING);
+                notify.run();
+            }
+        }, stop);
 
         String sig;
         {
@@ -94,11 +111,12 @@ public class VimeoParser extends VGetParser {
         sNextVideoURL.put(vd, new URL(s));
     }
 
-    public VideoInfo extract(VideoQuality max) {
+    @Override
+    public void extract(VideoInfo info, VideoQuality max, AtomicBoolean stop, Runnable notify) {
         try {
-            downloadone(source);
+            downloadone(info, stop, notify);
 
-            return getVideo(sNextVideoURL, max, source, sTitle);
+            getVideo(info, sNextVideoURL, max, sTitle);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

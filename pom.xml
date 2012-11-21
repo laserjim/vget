@@ -4,7 +4,7 @@
   <groupId>com.github.axet</groupId>
   <artifactId>vget</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.13</version>
+  <version>1.0.0</version>
   <name>vget</name>
   <description>vget java video download library</description>
   <url>https://github.com/axet/vget</url>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>com.github.axet</groupId>
       <artifactId>wget</artifactId>
-      <version>0.1.9</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
 
@@ -94,7 +94,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
         <configuration>
-              <useAgent>true</useAgent>
+          <useAgent>true</useAgent>
         </configuration>
         <executions>
           <execution>
