@@ -123,5 +123,5 @@ Here is a three kind of exceptions.
     <dependency>
       <groupId>com.github.axet</groupId>
       <artifactId>vget</artifactId>
-      <version>0.1.13</version>
+      <version>1.0.5</version>
     </dependency>
