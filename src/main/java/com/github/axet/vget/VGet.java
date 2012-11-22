@@ -198,17 +198,17 @@ public class VGet {
                 try {
                     final DownloadInfo dinfo = info.getInfo();
 
-                    target(dinfo);
-
-                    Direct direct;
-                    if (dinfo.range())
-                        direct = new DirectRange(dinfo, target);
-                    else
-                        direct = new DirectSingle(dinfo, target);
-
                     if (dinfo.getContentType() == null || !dinfo.getContentType().contains("video/")) {
                         throw new DownloadRetry("unable to download video, bad content");
                     }
+
+                    target(dinfo);
+
+                    Direct direct;
+                    if (dinfo.getRange())
+                        direct = new DirectRange(dinfo, target);
+                    else
+                        direct = new DirectSingle(dinfo, target);
 
                     direct.download(stop, new Runnable() {
                         @Override
