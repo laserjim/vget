@@ -234,6 +234,9 @@ public class VGet {
 
                     info.setState(States.DONE);
                     notify.run();
+                    
+                    // break while()
+                    return;
                 } catch (DownloadRetry e) {
                     retry(stop, notify, e);
                 } catch (DownloadIOError e) {
