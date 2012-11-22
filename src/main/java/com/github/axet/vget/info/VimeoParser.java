@@ -3,6 +3,8 @@ package com.github.axet.vget.info;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,6 +83,21 @@ public class VimeoParser extends VGetParser {
                 exp = um.group(1);
             }
 
+            // "qualities":["hd","sd","mobile"]
+            Set<String> qualities = new TreeSet<String>();
+            {
+                Pattern u = Pattern.compile("\"qualities\":\\[([^\\]]*\")\\]");
+                Matcher um = u.matcher(html);
+                if (!um.find()) {
+                    throw new DownloadError("unknown qualities vimeo respond");
+                }
+                String list = um.group(1);
+                String[] ll = list.split(",");
+                for (String s : ll) {
+                    qualities.add(s.replaceAll("\"", ""));
+                }
+            }
+
             {
                 Pattern u = Pattern.compile("\"title\":\"([^\"]+)\"");
                 Matcher um = u.matcher(html);
@@ -96,8 +113,10 @@ public class VimeoParser extends VGetParser {
             String hd = String.format(get, id, sig, exp, "hd");
             String sd = String.format(get, id, sig, exp, "sd");
 
-            // sNextVideoURL.put(VideoQuality.p1080, new URL(hd));
-            sNextVideoURL.put(VideoQuality.p480, new URL(sd));
+            if (qualities.contains("hd"))
+                sNextVideoURL.put(VideoQuality.p1080, new URL(hd));
+            if (qualities.contains("sd"))
+                sNextVideoURL.put(VideoQuality.p480, new URL(sd));
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
