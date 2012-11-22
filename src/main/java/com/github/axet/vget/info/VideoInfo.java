@@ -12,7 +12,7 @@ public class VideoInfo {
     }
 
     public enum States {
-        QUEUE, EXTRACTING, EXTRACTING_DONE, DOWNLOADING, RETRYING, DONE
+        QUEUE, EXTRACTING, EXTRACTING_DONE, DOWNLOADING, RETRYING, DONE, ERROR, STOP
     }
 
     private boolean empty = true;
@@ -83,7 +83,7 @@ public class VideoInfo {
         this.web = source;
     }
 
-    public void extract(AtomicBoolean stop, Runnable notify) throws InterruptedException {
+    public void extract(AtomicBoolean stop, Runnable notify) {
         VGetParser ei = null;
 
         if (YouTubeParser.probe(web))
