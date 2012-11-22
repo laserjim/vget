@@ -156,12 +156,11 @@ public class VGet {
     }
 
     void target(DownloadInfo dinfo) {
-        if (targetForce != null)
+        if (targetForce != null) {
             target = targetForce;
+        } else {
+            File f;
 
-        File f;
-
-        if (target == null) {
             Integer idupcount = 0;
 
             String sfilename = replaceBadChars(info.getTitle());
@@ -180,6 +179,10 @@ public class VGet {
             } while (f.exists());
 
             target = f;
+
+            // if we dont have resume file (targetForce==null) then we shall
+            // start over.
+            dinfo.reset();
         }
     }
 
