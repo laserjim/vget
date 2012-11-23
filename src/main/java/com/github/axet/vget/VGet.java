@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.github.axet.vget.info.VideoInfo;
 import com.github.axet.vget.info.VideoInfo.States;
 import com.github.axet.wget.Direct;
+import com.github.axet.wget.DirectMultipart;
 import com.github.axet.wget.DirectRange;
 import com.github.axet.wget.DirectSingle;
 import com.github.axet.wget.RetryWrap;
@@ -24,7 +25,7 @@ public class VGet {
 
     File targetForce = null;
 
-    File target = null;
+    File targetFile = null;
 
     public VGet(URL source, File targetDir) {
         VideoInfo info = new VideoInfo(source);
@@ -51,7 +52,7 @@ public class VGet {
      * @return
      */
     public File getTarget() {
-        return target;
+        return targetFile;
     }
 
     public VideoInfo getVideo() {
@@ -141,9 +142,9 @@ public class VGet {
                 if (infoOld.resume(infoNew)) {
                     infoNew.copy(infoOld);
                 } else {
-                    if (target != null) {
-                        target.delete();
-                        target = null;
+                    if (targetFile != null) {
+                        targetFile.delete();
+                        targetFile = null;
                     }
                 }
 
@@ -157,8 +158,21 @@ public class VGet {
 
     void target(DownloadInfo dinfo) {
         if (targetForce != null) {
-            target = targetForce;
-        } else {
+            targetFile = targetForce;
+
+            if (dinfo.multipart()) {
+                if (!DirectMultipart.canResume(dinfo, targetFile))
+                    targetFile = null;
+            } else if (dinfo.getRange()) {
+                if (!DirectRange.canResume(dinfo, targetFile))
+                    targetFile = null;
+            } else {
+                if (!DirectSingle.canResume(dinfo, targetFile))
+                    targetFile = null;
+            }
+        }
+
+        if (targetFile == null) {
             File f;
 
             Integer idupcount = 0;
@@ -178,7 +192,7 @@ public class VGet {
                 idupcount += 1;
             } while (f.exists());
 
-            target = f;
+            targetFile = f;
 
             // if we dont have resume file (targetForce==null) then we shall
             // start over.
@@ -205,10 +219,20 @@ public class VGet {
                     target(dinfo);
 
                     Direct direct;
-                    if (dinfo.getRange())
-                        direct = new DirectRange(dinfo, target);
-                    else
-                        direct = new DirectSingle(dinfo, target);
+
+                    if (dinfo.multipart()) {
+                        // multi part? overwrite.
+                        direct = new DirectMultipart(dinfo, targetFile);
+                    } else if (dinfo.getRange()) {
+                        // range download? try to resume download from last
+                        // position
+                        if (targetFile.exists() && targetFile.length() != dinfo.getCount())
+                            targetFile = null;
+                        direct = new DirectRange(dinfo, targetFile);
+                    } else {
+                        // single download? overwrite file
+                        direct = new DirectSingle(dinfo, targetFile);
+                    }
 
                     direct.download(stop, new Runnable() {
                         @Override
@@ -234,7 +258,7 @@ public class VGet {
 
                     info.setState(States.DONE);
                     notify.run();
-                    
+
                     // break while()
                     return;
                 } catch (DownloadRetry e) {
