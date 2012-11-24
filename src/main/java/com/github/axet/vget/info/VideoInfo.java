@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.axet.wget.info.DownloadInfo;
+import com.github.axet.wget.info.URLInfo;
 
 public class VideoInfo {
 
@@ -95,9 +96,15 @@ public class VideoInfo {
         if (ei == null)
             throw new RuntimeException("unsupported web site");
 
-        ei.extract(this, stop, notify);
+        try {
+            ei.extract(this, stop, notify);
 
-        info.extract(stop, notify);
+            info.extract(stop, notify);
+        } catch (RuntimeException e) {
+            setState(States.ERROR, e);
+
+            throw e;
+        }
     }
 
     public States getState() {
