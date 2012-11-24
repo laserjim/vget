@@ -20,7 +20,6 @@ import com.github.axet.wget.info.ex.DownloadError;
 public class VimeoParser extends VGetParser {
 
     HashMap<VideoQuality, URL> sNextVideoURL = new HashMap<VideoQuality, URL>();
-    String sTitle = null;
 
     URL source;
 
@@ -104,8 +103,9 @@ public class VimeoParser extends VGetParser {
                 if (!um.find()) {
                     throw new DownloadError("unknown title vimeo respond");
                 }
-                sTitle = um.group(1);
+                String sTitle = um.group(1);
                 sTitle = StringEscapeUtils.unescapeHtml4(sTitle);
+                info.setTitle(sTitle);
             }
 
             String get = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=H264,VP8,VP6&type=moogaloop_local&embed_location=&seek=0";
@@ -125,7 +125,7 @@ public class VimeoParser extends VGetParser {
     @Override
     public void extract(VideoInfo info, VideoQuality max, AtomicBoolean stop, Runnable notify) {
         downloadone(info, stop, notify);
-        getVideo(info, sNextVideoURL, max, sTitle);
+        getVideo(info, sNextVideoURL, max);
     }
 
 }

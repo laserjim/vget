@@ -54,8 +54,6 @@ public class YouTubeParser extends VGetParser {
 
     HashMap<VideoQuality, URL> sNextVideoURL = new HashMap<VideoQuality, URL>();
 
-    String sTitle = null;
-
     URL source;
 
     public YouTubeParser(URL input) {
@@ -90,7 +88,7 @@ public class YouTubeParser extends VGetParser {
                 notify.run();
             }
         }, stop);
-        extractHtmlInfo(html);
+        extractHtmlInfo(info, html);
     }
 
     /**
@@ -166,6 +164,8 @@ public class YouTubeParser extends VGetParser {
         }
         String id = um.group(1);
 
+        info.setTitle(String.format("http://www.youtube.com/watch?v=%s", id));
+
         String get = String
                 .format("http://www.youtube.com/get_video_info?video_id=%s&el=embedded&ps=default&eurl=", id);
 
@@ -188,8 +188,6 @@ public class YouTubeParser extends VGetParser {
 
         Map<String, String> map = getQueryMap(qs);
 
-        sTitle = URLDecoder.decode(map.get("title"), "UTF-8");
-
         if (map.get("status").equals("fail")) {
             String r = URLDecoder.decode(map.get("reason"), "UTF-8");
             if (map.get("errorcode").equals("150"))
@@ -197,6 +195,8 @@ public class YouTubeParser extends VGetParser {
             else
                 throw new EmbeddingDisabled(r);
         }
+
+        info.setTitle(URLDecoder.decode(map.get("title"), "UTF-8"));
 
         // String fmt_list = URLDecoder.decode(map.get("fmt_list"), "UTF-8");
         // String[] fmts = fmt_list.split(",");
@@ -220,7 +220,7 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
-    void extractHtmlInfo(String html) throws Exception {
+    void extractHtmlInfo(VideoInfo info, String html) throws Exception {
         Pattern age = Pattern.compile("(verify_age)");
         Matcher ageMatch = age.matcher(html);
         if (ageMatch.find())
@@ -285,7 +285,7 @@ public class YouTubeParser extends VGetParser {
             String name = sline.replaceFirst("<meta name=\"title\" content=", "").trim();
             name = StringUtils.strip(name, "\">");
             name = StringEscapeUtils.unescapeHtml4(name);
-            this.sTitle = name;
+            info.setTitle(name);
         }
     }
 
@@ -337,7 +337,7 @@ public class YouTubeParser extends VGetParser {
         try {
             downloadone(info, stop, notify);
 
-            getVideo(info, sNextVideoURL, max, sTitle);
+            getVideo(info, sNextVideoURL, max);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
