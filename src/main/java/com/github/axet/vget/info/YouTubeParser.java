@@ -172,7 +172,6 @@ public class YouTubeParser extends VGetParser {
         URL url = new URL(get);
 
         String qs = WGet.getHtml(url, new WGet.HtmlLoader() {
-
             @Override
             public void notifyRetry(int delay, Throwable e) {
                 info.setState(States.RETRYING, e);
@@ -186,7 +185,11 @@ public class YouTubeParser extends VGetParser {
                 notify.run();
             }
         }, stop);
+
         Map<String, String> map = getQueryMap(qs);
+
+        sTitle = URLDecoder.decode(map.get("title"), "UTF-8");
+
         if (map.get("status").equals("fail")) {
             String r = URLDecoder.decode(map.get("reason"), "UTF-8");
             if (map.get("errorcode").equals("150"))
@@ -195,7 +198,6 @@ public class YouTubeParser extends VGetParser {
                 throw new EmbeddingDisabled(r);
         }
 
-        sTitle = URLDecoder.decode(map.get("title"), "UTF-8");
         // String fmt_list = URLDecoder.decode(map.get("fmt_list"), "UTF-8");
         // String[] fmts = fmt_list.split(",");
         String url_encoded_fmt_stream_map = URLDecoder.decode(map.get("url_encoded_fmt_stream_map"), "UTF-8");
