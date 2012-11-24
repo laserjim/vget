@@ -118,10 +118,10 @@ Here is a three kind of exceptions.
         }
     }
 
-## Cetranal Maven Repo
+## Central Maven Repo
 
     <dependency>
       <groupId>com.github.axet</groupId>
       <artifactId>vget</artifactId>
-      <version>1.0.8</version>
+      <version>1.0.13</version>
     </dependency>
