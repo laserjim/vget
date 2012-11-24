@@ -32,6 +32,18 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
+    public static class PrivateVideoException extends DownloadError {
+        private static final long serialVersionUID = 1L;
+
+        public PrivateVideoException() {
+            super("Private video");
+        }
+
+        public PrivateVideoException(String s) {
+            super(s);
+        }
+    }
+
     public static class EmbeddingDisabled extends DownloadError {
         private static final long serialVersionUID = 1L;
 
@@ -175,8 +187,13 @@ public class YouTubeParser extends VGetParser {
             }
         }, stop);
         Map<String, String> map = getQueryMap(qs);
-        if (map.get("status").equals("fail"))
-            throw new EmbeddingDisabled(URLDecoder.decode(map.get("reason"), "UTF-8"));
+        if (map.get("status").equals("fail")) {
+            String r = URLDecoder.decode(map.get("reason"), "UTF-8");
+            if (map.get("errorcode").equals("150"))
+                throw new PrivateVideoException(r);
+            else
+                throw new EmbeddingDisabled(r);
+        }
 
         sTitle = URLDecoder.decode(map.get("title"), "UTF-8");
         // String fmt_list = URLDecoder.decode(map.get("fmt_list"), "UTF-8");
