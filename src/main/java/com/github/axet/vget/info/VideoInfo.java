@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.URLInfo;
+import com.github.axet.wget.info.ex.DownloadInterruptedError;
 
 public class VideoInfo {
 
@@ -100,6 +101,10 @@ public class VideoInfo {
             ei.extract(this, stop, notify);
 
             info.extract(stop, notify);
+        } catch (DownloadInterruptedError e) {
+            setState(States.STOP, e);
+
+            throw e;
         } catch (RuntimeException e) {
             setState(States.ERROR, e);
 
