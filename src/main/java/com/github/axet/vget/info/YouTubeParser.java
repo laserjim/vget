@@ -87,6 +87,12 @@ public class YouTubeParser extends VGetParser {
                 info.setState(States.DOWNLOADING);
                 notify.run();
             }
+
+            @Override
+            public void notifyMoved() {
+                info.setState(States.RETRYING);
+                notify.run();
+            }
         }, stop);
         extractHtmlInfo(info, html);
         extractIcon(info, html);
@@ -183,6 +189,12 @@ public class YouTubeParser extends VGetParser {
             @Override
             public void notifyDownloading() {
                 info.setState(States.DOWNLOADING);
+                notify.run();
+            }
+
+            @Override
+            public void notifyMoved() {
+                info.setState(States.RETRYING);
                 notify.run();
             }
         }, stop);

@@ -60,6 +60,12 @@ public class VimeoParser extends VGetParser {
                     info.setState(States.EXTRACTING);
                     notify.run();
                 }
+
+                @Override
+                public void notifyMoved() {
+                    info.setState(States.RETRYING);
+                    notify.run();
+                }
             }, stop);
 
             String sig;
