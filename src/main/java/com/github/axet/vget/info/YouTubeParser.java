@@ -89,6 +89,7 @@ public class YouTubeParser extends VGetParser {
             }
         }, stop);
         extractHtmlInfo(info, html);
+        extractIcon(info, html);
     }
 
     /**
@@ -203,6 +204,27 @@ public class YouTubeParser extends VGetParser {
         String url_encoded_fmt_stream_map = URLDecoder.decode(map.get("url_encoded_fmt_stream_map"), "UTF-8");
 
         extractUrlEncodedVideos(url_encoded_fmt_stream_map);
+
+        // 'iurlmaxresæ or 'iurlsd' or 'thumbnail_url'
+        String icon = map.get("thumbnail_url");
+        icon = URLDecoder.decode(icon, "UTF-8");
+        info.setIcon(new URL(icon));
+    }
+
+    void extractIcon(VideoInfo info, String html) {
+        try {
+            Pattern title = Pattern.compile("itemprop=\"thumbnailUrl\" href=\"(.*)\"");
+            Matcher titleMatch = title.matcher(html);
+            if (titleMatch.find()) {
+                String sline = titleMatch.group(1);
+                sline = StringEscapeUtils.unescapeHtml4(sline);
+                info.setIcon(new URL(sline));
+            }
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static Map<String, String> getQueryMap(String qs) {

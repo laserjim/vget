@@ -97,6 +97,17 @@ public class VimeoParser extends VGetParser {
                 }
             }
 
+            String icon;
+            {
+                Pattern u = Pattern.compile("\"thumbnail\":\"([^\"]*)\"");
+                Matcher um = u.matcher(html);
+                if (!um.find()) {
+                    throw new DownloadError("unknown timestamp vimeo respond");
+                }
+                icon = um.group(1);
+                icon = StringEscapeUtils.unescapeJava(icon);
+            }
+
             {
                 Pattern u = Pattern.compile("\"title\":\"([^\"]+)\"");
                 Matcher um = u.matcher(html);
@@ -117,6 +128,8 @@ public class VimeoParser extends VGetParser {
                 sNextVideoURL.put(VideoQuality.p1080, new URL(hd));
             if (qualities.contains("sd"))
                 sNextVideoURL.put(VideoQuality.p480, new URL(sd));
+
+            info.setIcon(new URL(icon));
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
