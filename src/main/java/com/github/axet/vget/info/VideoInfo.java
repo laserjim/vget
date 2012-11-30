@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.axet.wget.info.DownloadInfo;
-import com.github.axet.wget.info.URLInfo;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
 
 public class VideoInfo {
@@ -24,6 +23,7 @@ public class VideoInfo {
     private String title;
     // user friendly url (not direct video stream url)
     private URL web;
+    private URL icon;
 
     private States state;
     private Throwable exception;
@@ -140,5 +140,13 @@ public class VideoInfo {
 
     public void setException(Throwable exception) {
         this.exception = exception;
+    }
+
+    public URL getIcon() {
+        return icon;
+    }
+
+    public void setIcon(URL icon) {
+        this.icon = icon;
     }
 }
