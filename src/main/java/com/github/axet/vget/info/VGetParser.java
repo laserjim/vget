@@ -27,7 +27,6 @@ public abstract class VGetParser {
 
         for (; i < avail.length; i++) {
             if (sNextVideoURL.containsKey(avail[i])) {
-                vvi.setEmpty(false);
                 vvi.setVq(avail[i]);
                 DownloadInfo info = new DownloadInfo(sNextVideoURL.get(avail[i]));
                 vvi.setInfo(info);

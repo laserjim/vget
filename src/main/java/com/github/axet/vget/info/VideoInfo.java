@@ -16,8 +16,6 @@ public class VideoInfo {
         QUEUE, EXTRACTING, EXTRACTING_DONE, DOWNLOADING, RETRYING, DONE, ERROR, STOP
     }
 
-    private boolean empty = true;
-
     private VideoQuality vq;
     private DownloadInfo info;
     private String title;
@@ -46,11 +44,11 @@ public class VideoInfo {
     }
 
     public boolean empty() {
-        return empty;
+        return info == null;
     }
 
-    public void setEmpty(boolean e) {
-        empty = e;
+    public void reset() {
+        info = null;
     }
 
     public String getTitle() {
