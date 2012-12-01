@@ -31,17 +31,25 @@ public class VimeoParser extends VGetParser {
         return url.toString().contains("vimeo.com");
     }
 
+    public static String extractId(URL url) {
+        Pattern u = Pattern.compile("vimeo.com.*/(\\d+)");
+        Matcher um = u.matcher(url.toString());
+
+        if (um.find())
+            return um.group(1);
+
+        return null;
+    }
+
     void downloadone(final VideoInfo info, final AtomicBoolean stop, final Runnable notify) {
         try {
             String id;
             String clip;
             {
-                Pattern u = Pattern.compile("vimeo.com.*/(\\d+)");
-                Matcher um = u.matcher(info.getWeb().toString());
-                if (!um.find()) {
+                id = extractId(info.getWeb());
+                if (id == null) {
                     throw new DownloadError("unknown url");
                 }
-                id = um.group(1);
                 clip = "http://vimeo.com/" + id;
             }
 

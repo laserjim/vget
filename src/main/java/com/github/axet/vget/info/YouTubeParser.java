@@ -163,13 +163,29 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
+    public static String extractId(URL url) {
+        {
+            Pattern u = Pattern.compile("youtube.com/watch?.*v=([^&]*)");
+            Matcher um = u.matcher(url.toString());
+            if (um.find())
+                return um.group(1);
+        }
+
+        {
+            Pattern u = Pattern.compile("youtube.com/v/([^&]*)");
+            Matcher um = u.matcher(url.toString());
+            if (um.find())
+                return um.group(1);
+        }
+
+        return null;
+    }
+
     void extractEmbedded(final VideoInfo info, final AtomicBoolean stop, final Runnable notify) throws Exception {
-        Pattern u = Pattern.compile("youtube.com/.*v=([^&]*)");
-        Matcher um = u.matcher(source.toString());
-        if (!um.find()) {
+        String id = extractId(source);
+        if (id == null) {
             throw new RuntimeException("unknown url");
         }
-        String id = um.group(1);
 
         info.setTitle(String.format("http://www.youtube.com/watch?v=%s", id));
 
