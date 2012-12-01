@@ -130,6 +130,7 @@ public class VimeoParser extends VGetParser {
                 }
                 String sTitle = um.group(1);
                 sTitle = StringEscapeUtils.unescapeHtml4(sTitle);
+                sTitle = StringEscapeUtils.unescapeJava(sTitle);
                 info.setTitle(sTitle);
             }
 
