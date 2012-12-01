@@ -107,9 +107,6 @@ public class VGet {
     }
 
     void retry(AtomicBoolean stop, Runnable notify, Throwable e) {
-        info.setState(States.RETRYING, e);
-        notify.run();
-
         boolean retracted = false;
 
         while (!retracted) {
@@ -119,7 +116,7 @@ public class VGet {
                 if (Thread.currentThread().isInterrupted())
                     throw new DownloadInterruptedError("interrupted");
 
-                info.setDelay(i);
+                info.setDelay(i, e);
                 notify.run();
 
                 try {
@@ -243,8 +240,7 @@ public class VGet {
                                 notify.run();
                                 break;
                             case RETRYING:
-                                info.setState(States.RETRYING, dinfo.getException());
-                                info.setDelay(dinfo.getDelay());
+                                info.setDelay(dinfo.getDelay(), dinfo.getException());
                                 notify.run();
                                 break;
                             default:

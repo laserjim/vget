@@ -23,6 +23,7 @@ public class VideoInfo {
     private URL web;
     private URL icon;
 
+    // states, three variables
     private States state;
     private Throwable exception;
     private int delay;
@@ -117,19 +118,23 @@ public class VideoInfo {
     public void setState(States state) {
         this.state = state;
         this.exception = null;
+        this.delay = 0;
     }
 
     public void setState(States state, Throwable e) {
         this.state = state;
         this.exception = e;
+        this.delay = 0;
     }
 
     public int getDelay() {
         return delay;
     }
 
-    public void setDelay(int delay) {
+    public void setDelay(int delay, Throwable e) {
         this.delay = delay;
+        this.exception = e;
+        this.state = States.RETRYING;
     }
 
     public Throwable getException() {
