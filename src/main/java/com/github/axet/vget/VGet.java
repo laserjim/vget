@@ -1,9 +1,11 @@
 package com.github.axet.vget;
 
 import java.io.File;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.axet.vget.info.VideoInfo;
@@ -14,8 +16,11 @@ import com.github.axet.wget.DirectRange;
 import com.github.axet.wget.DirectSingle;
 import com.github.axet.wget.RetryWrap;
 import com.github.axet.wget.info.DownloadInfo;
+import com.github.axet.wget.info.DownloadInfo.Part;
+import com.github.axet.wget.info.ex.DownloadIOCodeError;
 import com.github.axet.wget.info.ex.DownloadIOError;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
+import com.github.axet.wget.info.ex.DownloadMultipartError;
 import com.github.axet.wget.info.ex.DownloadRetry;
 
 public class VGet {
@@ -140,7 +145,7 @@ public class VGet {
                     infoNew.copy(infoOld);
                 } else {
                     if (targetFile != null) {
-                        targetFile.delete();
+                        FileUtils.deleteQuietly(targetFile);
                         targetFile = null;
                     }
                 }
@@ -195,6 +200,22 @@ public class VGet {
             // start over.
             dinfo.reset();
         }
+    }
+
+    boolean retry(Throwable e) {
+        if (e == null)
+            return true;
+        if (e instanceof DownloadIOCodeError) {
+            DownloadIOCodeError c = (DownloadIOCodeError) e;
+            switch (c.getCode()) {
+            case HttpURLConnection.HTTP_FORBIDDEN:
+            case 416:
+                return true;
+            default:
+                return false;
+            }
+        }
+        return false;
     }
 
     public void download(final AtomicBoolean stop, final Runnable notify) {
@@ -259,6 +280,18 @@ public class VGet {
                     return;
                 } catch (DownloadRetry e) {
                     retry(stop, notify, e);
+                } catch (DownloadMultipartError e) {
+                    for (Part ee : e.getInfo().getParts()) {
+                        if (!retry(ee.getException())) {
+                            throw e;
+                        }
+                        retry(stop, notify, e);
+                    }
+                } catch (DownloadIOCodeError e) {
+                    if (retry(e))
+                        retry(stop, notify, e);
+                    else
+                        throw e;
                 } catch (DownloadIOError e) {
                     retry(stop, notify, e);
                 }
