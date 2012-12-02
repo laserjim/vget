@@ -264,12 +264,12 @@ public class VGet {
                 }
             }
         } catch (DownloadInterruptedError e) {
-            info.setState(VideoInfo.States.STOP);
+            info.setState(VideoInfo.States.STOP, e);
             notify.run();
 
             throw e;
         } catch (RuntimeException e) {
-            info.setState(VideoInfo.States.ERROR);
+            info.setState(VideoInfo.States.ERROR, e);
             notify.run();
 
             throw e;
