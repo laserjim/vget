@@ -285,8 +285,8 @@ public class VGet {
                         if (!retry(ee.getException())) {
                             throw e;
                         }
-                        retry(stop, notify, e);
                     }
+                    retry(stop, notify, e);
                 } catch (DownloadIOCodeError e) {
                     if (retry(e))
                         retry(stop, notify, e);
