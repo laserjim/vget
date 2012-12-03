@@ -220,14 +220,14 @@ public class VGet {
 
     public void download(final AtomicBoolean stop, final Runnable notify) {
         try {
-            if (info.empty())
-                info.extract(stop, notify);
-
-            info.setState(States.EXTRACTING_DONE);
-            notify.run();
-
             while (!done(stop)) {
                 try {
+                    if (info.empty()) {
+                        info.extract(stop, notify);
+                        info.setState(States.EXTRACTING_DONE);
+                        notify.run();
+                    }
+
                     final DownloadInfo dinfo = info.getInfo();
 
                     if (dinfo.getContentType() == null || !dinfo.getContentType().contains("video/")) {
