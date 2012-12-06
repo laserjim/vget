@@ -34,6 +34,11 @@ public abstract class VGetParser {
             }
         }
 
+        // Rare error:
+        //
+        // The live recording you're trying to play is still being processed and will be available soon.
+        // Sorry, please try again later.
+        //
         // retry. since youtube may already rendrered propertly quality.
         throw new DownloadRetry("no video with required quality found");
     }
