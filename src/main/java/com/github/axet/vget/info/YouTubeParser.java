@@ -1,5 +1,6 @@
 package com.github.axet.vget.info;
 
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,6 +49,14 @@ public class YouTubeParser extends VGetParser {
         private static final long serialVersionUID = 1L;
 
         public EmbeddingDisabled(String msg) {
+            super(msg);
+        }
+    }
+
+    public static class VideoDeleted extends DownloadError {
+        private static final long serialVersionUID = 1L;
+
+        public VideoDeleted(String msg) {
             super(msg);
         }
     }
@@ -218,9 +227,12 @@ public class YouTubeParser extends VGetParser {
         if (map.get("status").equals("fail")) {
             String r = URLDecoder.decode(map.get("reason"), "UTF-8");
             if (map.get("errorcode").equals("150"))
-                throw new PrivateVideoException(r);
-            else
-                throw new EmbeddingDisabled(r);
+                throw new EmbeddingDisabled("error code 150");
+            if (map.get("errorcode").equals("100"))
+                throw new VideoDeleted("error code 100");
+
+            throw new DownloadError(r);
+            // throw new PrivateVideoException(r);
         }
 
         info.setTitle(URLDecoder.decode(map.get("title"), "UTF-8"));
