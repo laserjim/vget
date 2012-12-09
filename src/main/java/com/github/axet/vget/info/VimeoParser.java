@@ -32,12 +32,24 @@ public class VimeoParser extends VGetParser {
     }
 
     public static String extractId(URL url) {
-        Pattern u = Pattern.compile("vimeo.com.*/(\\d+)");
-        Matcher um = u.matcher(url.toString());
+        // standard web url. format: "https://vimeo.com/49243107" or
+        // "http://vimeo.com/channels/staffpicks/49243107"
+        {
+            Pattern u = Pattern.compile("vimeo.com.*/(\\d+)");
+            Matcher um = u.matcher(url.toString());
 
-        if (um.find())
-            return um.group(1);
+            if (um.find())
+                return um.group(1);
+        }
+        // rss feed url. format:
+        // "http://vimeo.com/moogaloop.swf?clip_id=49243107"
+        {
+            Pattern u = Pattern.compile("vimeo.com.*=(\\d+)");
+            Matcher um = u.matcher(url.toString());
 
+            if (um.find())
+                return um.group(1);
+        }
         return null;
     }
 
