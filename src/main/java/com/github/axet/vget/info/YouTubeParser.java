@@ -25,6 +25,17 @@ import com.github.axet.wget.info.ex.DownloadError;
 
 public class YouTubeParser extends VGetParser {
 
+    public static class VideoUnavailablePlayer extends DownloadError {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 10905065542230199L;
+
+        public VideoUnavailablePlayer() {
+            super("unavailable-player");
+        }
+    }
+
     public static class AgeException extends DownloadError {
         private static final long serialVersionUID = 1L;
 
@@ -281,71 +292,76 @@ public class YouTubeParser extends VGetParser {
     }
 
     void extractHtmlInfo(VideoInfo info, String html) throws Exception {
-        Pattern age = Pattern.compile("(verify_age)");
-        Matcher ageMatch = age.matcher(html);
-        if (ageMatch.find())
-            throw new AgeException();
-
-        Pattern gen = Pattern.compile("\"(http(.*)generate_204(.*))\"");
-        Matcher genMatch = gen.matcher(html);
-        if (genMatch.find()) {
-            String sline = genMatch.group(1);
-
-            sline = StringEscapeUtils.unescapeJava(sline);
+        {
+            Pattern age = Pattern.compile("(verify_age)");
+            Matcher ageMatch = age.matcher(html);
+            if (ageMatch.find())
+                throw new AgeException();
         }
 
-        Pattern urlencod = Pattern.compile("\"url_encoded_fmt_stream_map\": \"([^\"]*)\"");
-        Matcher urlencodMatch = urlencod.matcher(html);
-        if (urlencodMatch.find()) {
-            String url_encoded_fmt_stream_map;
-            url_encoded_fmt_stream_map = urlencodMatch.group(1);
+        {
+            Pattern age = Pattern.compile("(unavailable-player)");
+            Matcher ageMatch = age.matcher(html);
+            if (ageMatch.find())
+                throw new VideoUnavailablePlayer();
+        }
 
-            // normal embedded video, unable to grab age restricted videos
-            Pattern encod = Pattern.compile("url=(.*)");
-            Matcher encodMatch = encod.matcher(url_encoded_fmt_stream_map);
-            if (encodMatch.find()) {
-                String sline = encodMatch.group(1);
+        {
+            Pattern urlencod = Pattern.compile("\"url_encoded_fmt_stream_map\": \"([^\"]*)\"");
+            Matcher urlencodMatch = urlencod.matcher(html);
+            if (urlencodMatch.find()) {
+                String url_encoded_fmt_stream_map;
+                url_encoded_fmt_stream_map = urlencodMatch.group(1);
 
-                extractUrlEncodedVideos(sline);
-            }
+                // normal embedded video, unable to grab age restricted videos
+                Pattern encod = Pattern.compile("url=(.*)");
+                Matcher encodMatch = encod.matcher(url_encoded_fmt_stream_map);
+                if (encodMatch.find()) {
+                    String sline = encodMatch.group(1);
 
-            // stream video
-            Pattern encodStream = Pattern.compile("stream=(.*)");
-            Matcher encodStreamMatch = encodStream.matcher(url_encoded_fmt_stream_map);
-            if (encodStreamMatch.find()) {
-                String sline = encodStreamMatch.group(1);
+                    extractUrlEncodedVideos(sline);
+                }
 
-                String[] urlStrings = sline.split("stream=");
+                // stream video
+                Pattern encodStream = Pattern.compile("stream=(.*)");
+                Matcher encodStreamMatch = encodStream.matcher(url_encoded_fmt_stream_map);
+                if (encodStreamMatch.find()) {
+                    String sline = encodStreamMatch.group(1);
 
-                for (String urlString : urlStrings) {
-                    urlString = StringEscapeUtils.unescapeJava(urlString);
+                    String[] urlStrings = sline.split("stream=");
 
-                    Pattern link = Pattern.compile("(sparams.*)&itag=(\\d+)&.*&conn=rtmpe(.*),");
-                    Matcher linkMatch = link.matcher(urlString);
-                    if (linkMatch.find()) {
+                    for (String urlString : urlStrings) {
+                        urlString = StringEscapeUtils.unescapeJava(urlString);
 
-                        String sparams = linkMatch.group(1);
-                        String itag = linkMatch.group(2);
-                        String url = linkMatch.group(3);
+                        Pattern link = Pattern.compile("(sparams.*)&itag=(\\d+)&.*&conn=rtmpe(.*),");
+                        Matcher linkMatch = link.matcher(urlString);
+                        if (linkMatch.find()) {
 
-                        url = "http" + url + "?" + sparams;
+                            String sparams = linkMatch.group(1);
+                            String itag = linkMatch.group(2);
+                            String url = linkMatch.group(3);
 
-                        url = URLDecoder.decode(url, "UTF-8");
+                            url = "http" + url + "?" + sparams;
 
-                        addVideo(Integer.decode(itag), url);
+                            url = URLDecoder.decode(url, "UTF-8");
+
+                            addVideo(Integer.decode(itag), url);
+                        }
                     }
                 }
             }
         }
 
-        Pattern title = Pattern.compile("<meta name=\"title\" content=(.*)");
-        Matcher titleMatch = title.matcher(html);
-        if (titleMatch.find()) {
-            String sline = titleMatch.group(1);
-            String name = sline.replaceFirst("<meta name=\"title\" content=", "").trim();
-            name = StringUtils.strip(name, "\">");
-            name = StringEscapeUtils.unescapeHtml4(name);
-            info.setTitle(name);
+        {
+            Pattern title = Pattern.compile("<meta name=\"title\" content=(.*)");
+            Matcher titleMatch = title.matcher(html);
+            if (titleMatch.find()) {
+                String sline = titleMatch.group(1);
+                String name = sline.replaceFirst("<meta name=\"title\" content=", "").trim();
+                name = StringUtils.strip(name, "\">");
+                name = StringEscapeUtils.unescapeHtml4(name);
+                info.setTitle(name);
+            }
         }
     }
 
