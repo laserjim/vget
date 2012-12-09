@@ -205,6 +205,7 @@ public class VGet {
     boolean retry(Throwable e) {
         if (e == null)
             return true;
+
         if (e instanceof DownloadIOCodeError) {
             DownloadIOCodeError c = (DownloadIOCodeError) e;
             switch (c.getCode()) {
@@ -215,19 +216,62 @@ public class VGet {
                 return false;
             }
         }
+
         return false;
+    }
+
+    /**
+     * return status of download information. subclassing for VideoInfo.empty();
+     * 
+     * @return
+     */
+    public boolean empty() {
+        return getVideo().empty();
+    }
+
+    /**
+     * extract video information, retry until success
+     * 
+     * @param stop
+     * @param notify
+     */
+    public void extract(AtomicBoolean stop, Runnable notify) {
+        while (!done(stop)) {
+            try {
+                if (info.empty()) {
+                    info.extract(stop, notify);
+                    info.setState(States.EXTRACTING_DONE);
+                    notify.run();
+                }
+                return;
+            } catch (DownloadRetry e) {
+                retry(stop, notify, e);
+            } catch (DownloadMultipartError e) {
+                for (Part ee : e.getInfo().getParts()) {
+                    if (!retry(ee.getException())) {
+                        throw e;
+                    }
+                }
+                retry(stop, notify, e);
+            } catch (DownloadIOCodeError e) {
+                if (retry(e))
+                    retry(stop, notify, e);
+                else
+                    throw e;
+            } catch (DownloadIOError e) {
+                retry(stop, notify, e);
+            }
+        }
     }
 
     public void download(final AtomicBoolean stop, final Runnable notify) {
         try {
+            if (empty()) {
+                extract(stop, notify);
+            }
+
             while (!done(stop)) {
                 try {
-                    if (info.empty()) {
-                        info.extract(stop, notify);
-                        info.setState(States.EXTRACTING_DONE);
-                        notify.run();
-                    }
-
                     final DownloadInfo dinfo = info.getInfo();
 
                     if (dinfo.getContentType() == null || !dinfo.getContentType().contains("video/")) {
