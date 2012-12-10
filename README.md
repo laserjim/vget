@@ -100,9 +100,13 @@ Here is a three kind of exceptions.
                 };
     
                 info = new VideoInfo(new URL("http://vimeo.com/52716355"));
-                info.extract(stop, notify);
     
                 VGet v = new VGet(info, new File("/Users/axet/Downloads"));
+    
+                // optional. only if you dlike to get video title before start
+                // download
+                v.extract(stop, notify);
+                System.out.println(info.getTitle());
     
                 v.download(stop, notify);
             } catch (RuntimeException e) {
@@ -123,5 +127,5 @@ Here is a three kind of exceptions.
     <dependency>
       <groupId>com.github.axet</groupId>
       <artifactId>vget</artifactId>
-      <version>1.0.22</version>
+      <version>1.0.34</version>
     </dependency>
