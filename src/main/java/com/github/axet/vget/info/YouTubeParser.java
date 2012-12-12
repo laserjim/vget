@@ -1,6 +1,5 @@
 package com.github.axet.vget.info;
 
-import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
