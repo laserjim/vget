@@ -151,6 +151,13 @@ public class VGet {
                 }
 
                 retracted = true;
+            } catch (DownloadIOCodeError ee) {
+                if (retry(ee)) {
+                    info.setState(States.RETRYING, ee);
+                    notify.run();
+                } else {
+                    throw ee;
+                }
             } catch (DownloadRetry ee) {
                 info.setState(States.RETRYING, ee);
                 notify.run();
