@@ -404,24 +404,13 @@ public class YouTubeParser extends VGetParser {
 
                         if (sig != null)
                             url += "&signature=" + sig;
-                        if (itag != null)
+                        if (itag != null) {
                             addVideo(Integer.decode(itag), url);
+                            continue;
+                        }
                     } catch (MalformedURLException e) {
                         // ignore bad urls
                     }
-                }
-            }
-
-            {
-                Pattern link = Pattern.compile("(.*)&quality=(.*)&fallback_host=(.*)&type=(.*)itag=(\\d+)");
-                Matcher linkMatch = link.matcher(urlString);
-                if (linkMatch.find()) {
-                    String url = linkMatch.group(1);
-                    String itag = linkMatch.group(5);
-
-                    url = URLDecoder.decode(url, "UTF-8");
-
-                    addVideo(Integer.decode(itag), url);
                 }
             }
 
@@ -440,6 +429,22 @@ public class YouTubeParser extends VGetParser {
                     url += "&signature=" + sig;
 
                     addVideo(Integer.decode(itag), url);
+                    continue;
+                }
+            }
+
+            // first version
+            {
+                Pattern link = Pattern.compile("(.*)&quality=(.*)&fallback_host=(.*)&type=(.*)itag=(\\d+)");
+                Matcher linkMatch = link.matcher(urlString);
+                if (linkMatch.find()) {
+                    String url = linkMatch.group(1);
+                    String itag = linkMatch.group(5);
+
+                    url = URLDecoder.decode(url, "UTF-8");
+
+                    addVideo(Integer.decode(itag), url);
+                    continue;
                 }
             }
         }
