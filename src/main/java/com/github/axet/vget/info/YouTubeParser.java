@@ -370,6 +370,48 @@ public class YouTubeParser extends VGetParser {
         for (String urlString : urlStrings) {
             urlString = StringEscapeUtils.unescapeJava(urlString);
 
+            // simple request (catchup old movies)
+            {
+                String url = null;
+                {
+                    Pattern link = Pattern.compile("([^&]*)&");
+                    Matcher linkMatch = link.matcher(urlString);
+                    if (linkMatch.find()) {
+                        url = linkMatch.group(1);
+                        url = URLDecoder.decode(url, "UTF-8");
+                    }
+                }
+                String itag = null;
+                {
+                    Pattern link = Pattern.compile("itag=(\\d+)");
+                    Matcher linkMatch = link.matcher(urlString);
+                    if (linkMatch.find()) {
+                        itag = linkMatch.group(1);
+                    }
+                }
+                String sig = null;
+                {
+                    Pattern link = Pattern.compile("sig=([^&]*)&");
+                    Matcher linkMatch = link.matcher(urlString);
+                    if (linkMatch.find()) {
+                        sig = linkMatch.group(1);
+                    }
+                }
+
+                if (url != null) {
+                    try {
+                        new URL(url);
+
+                        if (sig != null)
+                            url += "&signature=" + sig;
+                        if (itag != null)
+                            addVideo(Integer.decode(itag), url);
+                    } catch (MalformedURLException e) {
+                        // ignore bad urls
+                    }
+                }
+            }
+
             {
                 Pattern link = Pattern.compile("(.*)&quality=(.*)&fallback_host=(.*)&type=(.*)itag=(\\d+)");
                 Matcher linkMatch = link.matcher(urlString);
@@ -390,14 +432,10 @@ public class YouTubeParser extends VGetParser {
                 if (linkMatch.find()) {
                     String url = linkMatch.group(1);
 
-                    String type = linkMatch.group(2);
-                    String fallback_host = linkMatch.group(3);
                     String sig = linkMatch.group(4);
-                    String quality = linkMatch.group(5);
                     String itag = linkMatch.group(6);
 
                     url = URLDecoder.decode(url, "UTF-8");
-                    type = URLDecoder.decode(type, "UTF-8");
 
                     url += "&signature=" + sig;
 
