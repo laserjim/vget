@@ -104,6 +104,13 @@ public class VGet {
         return f;
     }
 
+    static String maxFileLength(String str) {
+        int max = 50;
+        if (str.length() > max)
+            str = str.substring(0, max);
+        return str;
+    }
+
     boolean done(AtomicBoolean stop) {
         if (stop.get())
             throw new DownloadInterruptedError("stop");
@@ -189,6 +196,8 @@ public class VGet {
             Integer idupcount = 0;
 
             String sfilename = replaceBadChars(info.getTitle());
+
+            sfilename = maxFileLength(sfilename);
 
             String ct = dinfo.getContentType();
             if (ct == null)
@@ -279,7 +288,8 @@ public class VGet {
     }
 
     /**
-     * check if all parts has the same filenotfound exception. if so throw DownloadError.FilenotFoundexcepiton
+     * check if all parts has the same filenotfound exception. if so throw
+     * DownloadError.FilenotFoundexcepiton
      * 
      * @param e
      */
