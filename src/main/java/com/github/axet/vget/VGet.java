@@ -1,6 +1,7 @@
 package com.github.axet.vget;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,6 +18,7 @@ import com.github.axet.wget.DirectSingle;
 import com.github.axet.wget.RetryWrap;
 import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.DownloadInfo.Part;
+import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadIOCodeError;
 import com.github.axet.wget.info.ex.DownloadIOError;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
@@ -102,6 +104,13 @@ public class VGet {
         return f;
     }
 
+    static String maxFileLength(String str) {
+        int max = 50;
+        if (str.length() > max)
+            str = str.substring(0, max);
+        return str;
+    }
+
     boolean done(AtomicBoolean stop) {
         if (stop.get())
             throw new DownloadInterruptedError("stop");
@@ -151,6 +160,13 @@ public class VGet {
                 }
 
                 retracted = true;
+            } catch (DownloadIOCodeError ee) {
+                if (retry(ee)) {
+                    info.setState(States.RETRYING, ee);
+                    notify.run();
+                } else {
+                    throw ee;
+                }
             } catch (DownloadRetry ee) {
                 info.setState(States.RETRYING, ee);
                 notify.run();
@@ -180,6 +196,8 @@ public class VGet {
             Integer idupcount = 0;
 
             String sfilename = replaceBadChars(info.getTitle());
+
+            sfilename = maxFileLength(sfilename);
 
             String ct = dinfo.getContentType();
             if (ct == null)
@@ -247,11 +265,8 @@ public class VGet {
             } catch (DownloadRetry e) {
                 retry(stop, notify, e);
             } catch (DownloadMultipartError e) {
-                for (Part ee : e.getInfo().getParts()) {
-                    if (!retry(ee.getException())) {
-                        throw e;
-                    }
-                }
+                checkFileNotFound(e);
+                checkRetry(e);
                 retry(stop, notify, e);
             } catch (DownloadIOCodeError e) {
                 if (retry(e))
@@ -262,6 +277,54 @@ public class VGet {
                 retry(stop, notify, e);
             }
         }
+    }
+
+    void checkRetry(DownloadMultipartError e) {
+        for (Part ee : e.getInfo().getParts()) {
+            if (!retry(ee.getException())) {
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * check if all parts has the same filenotfound exception. if so throw
+     * DownloadError.FilenotFoundexcepiton
+     * 
+     * @param e
+     */
+    void checkFileNotFound(DownloadMultipartError e) {
+        FileNotFoundException f = null;
+        for (Part ee : e.getInfo().getParts()) {
+            // no error for this part? skip it
+            if (ee.getException() == null)
+                continue;
+            // this exception has no cause? then it is not FileNotFound
+            // excpetion. then do noting. this is checking function. do not
+            // rethrow
+            if (ee.getException().getCause() == null)
+                return;
+            if (ee.getException().getCause() instanceof FileNotFoundException) {
+                // our first filenotfoundexception?
+                if (f == null) {
+                    // save it for later checks
+                    f = (FileNotFoundException) ee.getException().getCause();
+                } else {
+                    // check filenotfound error message is it the same?
+                    FileNotFoundException ff = (FileNotFoundException) ee.getException().getCause();
+                    if (!ff.getMessage().equals(f.getMessage())) {
+                        // if the filenotfound exception message is not the
+                        // same. then we cannot retrhow filenotfound exception.
+                        // return and continue checks
+                        return;
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        if (f != null)
+            throw new DownloadError(f);
     }
 
     public void download(final AtomicBoolean stop, final Runnable notify) {
@@ -325,11 +388,8 @@ public class VGet {
                 } catch (DownloadRetry e) {
                     retry(stop, notify, e);
                 } catch (DownloadMultipartError e) {
-                    for (Part ee : e.getInfo().getParts()) {
-                        if (!retry(ee.getException())) {
-                            throw e;
-                        }
-                    }
+                    checkFileNotFound(e);
+                    checkRetry(e);
                     retry(stop, notify, e);
                 } catch (DownloadIOCodeError e) {
                     if (retry(e))
