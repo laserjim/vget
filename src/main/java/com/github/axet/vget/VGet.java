@@ -1,6 +1,7 @@
 package com.github.axet.vget;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -254,6 +255,28 @@ public class VGet {
             } catch (DownloadRetry e) {
                 retry(stop, notify, e);
             } catch (DownloadMultipartError e) {
+                {
+                    // check for filenotfound
+                    FileNotFoundException f = null;
+                    for (Part ee : e.getInfo().getParts()) {
+                        if (ee.getException() instanceof FileNotFoundException) {
+                            if (f == null) {
+                                f = (FileNotFoundException) ee.getException();
+                            } else {
+                                FileNotFoundException ff = (FileNotFoundException) ee.getException();
+                                if (!ff.getMessage().equals(f.getMessage())) {
+                                    f = null;
+                                    break;
+                                }
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                    if (f != null)
+                        throw new RuntimeException(f);
+                }
+
                 for (Part ee : e.getInfo().getParts()) {
                     if (!retry(ee.getException())) {
                         throw e;
