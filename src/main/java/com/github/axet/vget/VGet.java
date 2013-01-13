@@ -34,18 +34,20 @@ public class VGet {
 
     File targetFile = null;
 
-    public VGet(URL source, File targetDir) {
-        VideoInfo info = new VideoInfo(source);
+    public VGet(URL source) {
+        this(new VideoInfo(source));
+    }
 
-        create(info, targetDir);
+    public VGet(VideoInfo info) {
+        this(info, new File("."));
+    }
+
+    public VGet(URL source, File targetDir) {
+        this(new VideoInfo(source), targetDir);
     }
 
     public VGet(VideoInfo info, File targetDir) {
-        create(info, targetDir);
-    }
-
-    void create(VideoInfo video, File targetDir) {
-        this.info = video;
+        this.info = info;
         this.targetDir = targetDir;
     }
 
@@ -75,32 +77,18 @@ public class VGet {
     }
 
     /**
-     * Drop all foribiden characters from filename
+     * Drop all forbidden characters from filename
      * 
      * @param f
      *            input file name
      * @return normalized file name
      */
     static String replaceBadChars(String f) {
-        String replace = " ";
-        f = f.replaceAll("/", replace);
-        f = f.replaceAll("\\\\", replace);
-        f = f.replaceAll(":", replace);
-        f = f.replaceAll("\\?", replace);
-        f = f.replaceAll("\\\"", replace);
-        f = f.replaceAll("\\*", replace);
-        f = f.replaceAll("<", replace);
-        f = f.replaceAll(">", replace);
-        f = f.replaceAll("\\|", replace);
+        f = f.replaceAll("[^\\w\\s\\-\\.\\(\\)]", " ");
         f = f.trim();
         f = StringUtils.removeEnd(f, ".");
+        f = f.replaceAll("\\s{2,}", " ");
         f = f.trim();
-
-        String ff;
-        while (!(ff = f.replaceAll("  ", " ")).equals(f)) {
-            f = ff;
-        }
-
         return f;
     }
 
