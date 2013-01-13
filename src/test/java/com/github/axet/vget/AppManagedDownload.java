@@ -2,6 +2,7 @@ package com.github.axet.vget;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.axet.vget.info.VideoInfo;
@@ -14,7 +15,7 @@ public class AppManagedDownload {
     VideoInfo info;
     long last;
 
-    public void run() {
+    public void run(String url) {
         try {
             AtomicBoolean stop = new AtomicBoolean(false);
             Runnable notify = new Runnable() {
@@ -41,10 +42,14 @@ public class AppManagedDownload {
 
                             String parts = "";
 
-                            for (Part p : i2.getParts()) {
-                                if (p.getState().equals(States.DOWNLOADING)) {
-                                    parts += String.format("Part#%d(%.2f) ", p.getNumber(),
-                                            p.getCount() / (float) p.getLength());
+                            List<Part> pp = i2.getParts();
+                            if (pp != null) {
+                                // multipart download
+                                for (Part p : pp) {
+                                    if (p.getState().equals(States.DOWNLOADING)) {
+                                        parts += String.format("Part#%d(%.2f) ", p.getNumber(), p.getCount()
+                                                / (float) p.getLength());
+                                    }
                                 }
                             }
 
@@ -58,7 +63,7 @@ public class AppManagedDownload {
                 }
             };
 
-            info = new VideoInfo(new URL("http://vimeo.com/52716355"));
+            info = new VideoInfo(new URL(url));
 
             VGet v = new VGet(info, new File("/Users/axet/Downloads"));
 
@@ -77,6 +82,6 @@ public class AppManagedDownload {
 
     public static void main(String[] args) {
         AppManagedDownload e = new AppManagedDownload();
-        e.run();
+        e.run(args[0]);
     }
 }

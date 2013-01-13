@@ -257,6 +257,7 @@ public class VGet {
         while (!done(stop)) {
             try {
                 if (info.empty()) {
+                    info.setState(States.EXTRACTING);
                     info.extract(stop, notify);
                     info.setState(States.EXTRACTING_DONE);
                     notify.run();

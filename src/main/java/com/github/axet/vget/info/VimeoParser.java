@@ -150,8 +150,13 @@ public class VimeoParser extends VGetParser {
             String hd = String.format(get, id, sig, exp, "hd");
             String sd = String.format(get, id, sig, exp, "sd");
 
+            // TODO fix resolution calculation
+            // https://vimeo.com/help/compression
+
+            // can be 1080p or 720p
             if (qualities.contains("hd"))
                 sNextVideoURL.put(VideoQuality.p1080, new URL(hd));
+            // can be 360p or 480p
             if (qualities.contains("sd"))
                 sNextVideoURL.put(VideoQuality.p480, new URL(sd));
 

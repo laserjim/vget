@@ -20,14 +20,12 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import com.github.axet.vget.info.VideoInfo.States;
 import com.github.axet.vget.info.VideoInfo.VideoQuality;
 import com.github.axet.wget.WGet;
+import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.ex.DownloadError;
 
 public class YouTubeParser extends VGetParser {
 
     public static class VideoUnavailablePlayer extends DownloadError {
-        /**
-         * 
-         */
         private static final long serialVersionUID = 10905065542230199L;
 
         public VideoUnavailablePlayer() {
@@ -112,74 +110,57 @@ public class YouTubeParser extends VGetParser {
                 notify.run();
             }
         }, stop);
-        extractHtmlInfo(info, html);
+        extractHtmlInfo(info, html, stop, notify);
         extractIcon(info, html);
     }
 
     /**
      * Add resolution video for specific youtube link.
      * 
-     * @param s
+     * @param url
      *            download source url
      * @throws MalformedURLException
      */
-    void addVideo(VideoQuality vd, String s) throws MalformedURLException {
-        if (s != null)
-            sNextVideoURL.put(vd, new URL(s));
+    void addVideo(String itag, String url) throws MalformedURLException {
+        Integer i = Integer.decode(itag);
+        VideoQuality vd = itagMap.get(i);
+
+        URL u = new URL(url);
+
+        System.out.println(u);
+
+        if (u != null)
+            sNextVideoURL.put(vd, u);
     }
 
-    void addVideo(Integer itag, String url) throws MalformedURLException {
-        switch (itag) {
-        case 38:
+    Map<Integer, VideoQuality> itagMap = new HashMap<Integer, VideoInfo.VideoQuality>() {
+        private static final long serialVersionUID = -6925194111122038477L;
+        {
             // mp4
-            addVideo(VideoQuality.p1080, url);
-            break;
-        case 37:
-            // mp4
-            addVideo(VideoQuality.p1080, url);
-            break;
-        case 46:
+            put(38, VideoQuality.p1080);
+            put(37, VideoQuality.p1080);
             // webm
-            addVideo(VideoQuality.p1080, url);
-            break;
-        case 22:
+            put(46, VideoQuality.p1080);
             // mp4
-            addVideo(VideoQuality.p720, url);
-            break;
-        case 45:
+            put(22, VideoQuality.p720);
             // webm
-            addVideo(VideoQuality.p720, url);
-            break;
-        case 35:
+            put(45, VideoQuality.p720);
             // mp4
-            addVideo(VideoQuality.p480, url);
-            break;
-        case 44:
+            put(35, VideoQuality.p480);
             // webm
-            addVideo(VideoQuality.p480, url);
-            break;
-        case 18:
+            put(44, VideoQuality.p480);
             // mp4
-            addVideo(VideoQuality.p360, url);
-            break;
-        case 34:
+            put(18, VideoQuality.p360);
             // flv
-            addVideo(VideoQuality.p360, url);
-            break;
-        case 43:
+            put(34, VideoQuality.p360);
             // webm
-            addVideo(VideoQuality.p360, url);
-            break;
-        case 6:
+            put(43, VideoQuality.p360);
             // flv
-            addVideo(VideoQuality.p270, url);
-            break;
-        case 5:
+            put(6, VideoQuality.p270);
             // flv
-            addVideo(VideoQuality.p224, url);
-            break;
+            put(5, VideoQuality.p224);
         }
-    }
+    };
 
     public static String extractId(URL url) {
         {
@@ -251,7 +232,7 @@ public class YouTubeParser extends VGetParser {
         // String[] fmts = fmt_list.split(",");
         String url_encoded_fmt_stream_map = URLDecoder.decode(map.get("url_encoded_fmt_stream_map"), "UTF-8");
 
-        extractUrlEncodedVideos(url_encoded_fmt_stream_map);
+        extractUrlEncodedVideos(url_encoded_fmt_stream_map, stop, notify);
 
         // 'iurlmaxresæ or 'iurlsd' or 'thumbnail_url'
         String icon = map.get("thumbnail_url");
@@ -290,7 +271,7 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
-    void extractHtmlInfo(VideoInfo info, String html) throws Exception {
+    void extractHtmlInfo(VideoInfo info, String html, AtomicBoolean stop, Runnable notify) throws Exception {
         {
             Pattern age = Pattern.compile("(verify_age)");
             Matcher ageMatch = age.matcher(html);
@@ -318,7 +299,7 @@ public class YouTubeParser extends VGetParser {
                 if (encodMatch.find()) {
                     String sline = encodMatch.group(1);
 
-                    extractUrlEncodedVideos(sline);
+                    extractUrlEncodedVideos(sline, stop, notify);
                 }
 
                 // stream video
@@ -344,7 +325,7 @@ public class YouTubeParser extends VGetParser {
 
                             url = URLDecoder.decode(url, "UTF-8");
 
-                            addVideo(Integer.decode(itag), url);
+                            addVideo(itag, url);
                         }
                     }
                 }
@@ -364,13 +345,13 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
-    void extractUrlEncodedVideos(String sline) throws Exception {
+    void extractUrlEncodedVideos(String sline, AtomicBoolean stop, Runnable notify) throws Exception {
         String[] urlStrings = sline.split("url=");
 
         for (String urlString : urlStrings) {
             urlString = StringEscapeUtils.unescapeJava(urlString);
 
-            // simple request (catchup old movies)
+            // universal request
             {
                 String url = null;
                 {
@@ -391,60 +372,30 @@ public class YouTubeParser extends VGetParser {
                 }
                 String sig = null;
                 {
-                    Pattern link = Pattern.compile("sig=([^&]*)&");
+                    Pattern link = Pattern.compile("sig=([^&,]*)");
                     Matcher linkMatch = link.matcher(urlString);
                     if (linkMatch.find()) {
                         sig = linkMatch.group(1);
                     }
                 }
 
-                if (url != null) {
+                if (url != null && itag != null && sig != null) {
                     try {
                         new URL(url);
 
                         if (sig != null)
                             url += "&signature=" + sig;
+
+                        if (itag != null)
+                            url += "&itag=" + itag;
+
                         if (itag != null) {
-                            addVideo(Integer.decode(itag), url);
+                            addVideo(itag, url);
                             continue;
                         }
                     } catch (MalformedURLException e) {
                         // ignore bad urls
                     }
-                }
-            }
-
-            // youtube after 2012/09/27
-            {
-                Pattern link = Pattern.compile("(.*)&type=(.*)&fallback_host=(.*)&sig=(.*)&quality=(.*),itag=(\\d+)");
-                Matcher linkMatch = link.matcher(urlString);
-                if (linkMatch.find()) {
-                    String url = linkMatch.group(1);
-
-                    String sig = linkMatch.group(4);
-                    String itag = linkMatch.group(6);
-
-                    url = URLDecoder.decode(url, "UTF-8");
-
-                    url += "&signature=" + sig;
-
-                    addVideo(Integer.decode(itag), url);
-                    continue;
-                }
-            }
-
-            // first version
-            {
-                Pattern link = Pattern.compile("(.*)&quality=(.*)&fallback_host=(.*)&type=(.*)itag=(\\d+)");
-                Matcher linkMatch = link.matcher(urlString);
-                if (linkMatch.find()) {
-                    String url = linkMatch.group(1);
-                    String itag = linkMatch.group(5);
-
-                    url = URLDecoder.decode(url, "UTF-8");
-
-                    addVideo(Integer.decode(itag), url);
-                    continue;
                 }
             }
         }
